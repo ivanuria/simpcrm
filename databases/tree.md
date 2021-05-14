@@ -3,7 +3,7 @@
 __init__.py
   |_ reading of config file, getting sqlite or mysql
 dbinterface.py
-  |_ database interface
+  |_ DBInterface
     @properties
     |_ database
     |_ table

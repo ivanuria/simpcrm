@@ -13,7 +13,7 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.cursor = self.db.__cursor
         self.cursor.execute("""Create table customers
             (id integer primary key, name text, phone text, age integer)""")
-        self.cursor.execute(""" insert into customers (name, phone, age )
+        self.cursor.execute(""" insert into customers (name, phone, age)
             values (:name, :phone, :age)""",
             {"name": "María", "age": 49, "phone": "+34666777888"})
         self.cursor.commit()
@@ -43,7 +43,7 @@ class v1_Databases_sqlite(unittest.TestCase):
             {"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
 
     def test_update(self):
-        self.db.update({"name": "María"}, {"age": 25})
+        self.db.update({"name": "María"}, filter={"age": 25})
         self.assertEqual(self.db.select({"name": "María"}),
             databases.Data({"id": 1, "name": "María", "age": 25, "phone": "+34666777888"}))
 
