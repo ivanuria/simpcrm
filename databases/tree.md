@@ -18,7 +18,7 @@ dbinterface.py
     |_ update
     |_ select
     |_ remove
-  |_ QueryData
+  |_ Data
     -> inheriting from list and giving results in a dictionary
 sqlite.py
   |_ inherits from database interface, sets methods to use sqlite
