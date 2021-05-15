@@ -1,5 +1,11 @@
 # databases.py
 
+SELECT = "SELECT"
+INSERT = "INSERT"
+UPDATE = "UPDATE"
+REMOVE = "REMOVE"
+CREATE_TABLE = "CREATE TABLE"
+
 class Data(list): #not checked datatypes
     def __init__(self, data):
         if isinstance(data, dict):
@@ -7,44 +13,151 @@ class Data(list): #not checked datatypes
         super().__init__(data)
 
 class DBInterface:
-    def __init__(self):
-        pass
+    def __init__(self, *args, **kwargs):
+        """
+        Initializes DB Interface
+        KWARGS:
+            server -> default "localhost"
+            database -> db name
+            user -> user name to access server
+            password -> password to access server
+            encription -> if encription is needed
+        """
+        self._database, self._user, self._password, self._encription = [""]*
+        if "database" in kwargs:
+            self._database = kwargs["database"]
+        if "server" in kwargs:
+            self._server = kwargs["server"]
+        else:
+            self._server = "localhost"
+        if "user" in kwargs:
+            self._user = kwargs["user"]
+        if "password" in kwargs:
+            self._password = kwargs["password"]
+        if "encription" in kwargs:
+            self._encription = kwargs["encription"]
 
     @property
     def database(self):
-        pass
+        """
+        returns database name
+        """
+        return self._database
+
+    @property
+    def server(self):
+        """
+        returns server name
+        """
+        return self._server
 
     @property
     def table(self):
+        """
+        returns active table name
+        """
         pass
 
     @property
     def filter(self):
+        """
+        returns active filter
+        """
         pass
 
+    @property
+    def sql_dict(self):
+        return {"table": self.table,
+                "filter": self.filter,
+                "method": SELECT,
+                "fields": [],
+                "data": []
+                }
+
     def connect(self):
+        """
+        connects to database
+        """
         pass
 
     def disconnect(self):
+        """
+        disconnects database
+        """
         pass
 
-    def set_database(self, name):
-        pass
+    def set_database(self, database):
+        """
+        sets database name
+        """
+        self._database = database
 
-    def set_table(self, name):
-        pass
+    def set_table(self, table):
+        """
+        sets table name
+        """
+        self._table = table
 
     def set_filter(self, filter):
+        """
+        sets filter
+        """
         pass
 
-    def insert(self, data):
+    def insert(self, data, database=None, table=None):
+        """
+        inserts data in database and table
+        """
         pass
 
-    def update(self, data, filter=None):
+    def check_table_exists(self, table, database=None, table=None):
+        """
+        checkes if table exists
+        """
         pass
 
-    def select(self, filter=None):
+    def update(self, data, filter=None, database=None, table=None):
+        """
+        inserts data in database and table with set_filter
+        """
         pass
 
-    def remove(self, filter=None):
+    def select(self, filter=None, database=None, table=None):
+        """
+        selects data in database and table with set_filter
+        """
         pass
+
+    def remove(self, filter=None, database=None, table=None):
+        """
+        removes data in database and table with set_filter
+        """
+        pass
+
+    def drop_table(self, database=None, table=None):
+        """
+        drops selected table
+        """
+        pass
+
+    def create_table(self, table, fields={}):
+        """
+        creates table with fields definition
+        """
+
+    def delete_database(self, database=None):
+        """
+        disconnects and deletes selectted database
+        """
+        self.disconnect()
+
+    def _create_sql_query(cls, **kwargs):
+        """
+        creates sql query with given args
+          kwargs may have: "table", "method", "fields", "data"
+        """
+        assert all("table" in kwargs,
+                    "method" in kwargs,
+                    "filter" in kwargs,
+                    "fields" in kwargs,
+                    "data" in kwargs)
