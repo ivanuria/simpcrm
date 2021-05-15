@@ -1,4 +1,4 @@
-# EASY CRM
+# SimpCRM
 
 An easy to implement CRM.
 
