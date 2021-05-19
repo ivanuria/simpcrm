@@ -3,7 +3,7 @@
 SELECT = "SELECT"
 INSERT = "INSERT"
 UPDATE = "UPDATE"
-REMOVE = "REMOVE"
+DELETE = "DELETE"
 CREATE_TABLE = "CREATE TABLE"
 
 class Data(list): #not checked datatypes
@@ -108,7 +108,14 @@ class DBInterface:
         """
         inserts data in database and table
         """
-        pass
+        assert isinstace(data, dict)
+        if database is None:
+            database = self.database
+        if table is None:
+            table = self.table
+        if fields is None:
+            fields = []
+        fields, values = list(data.keys()), list(data.values())
 
     def check_table_exists(self, table, database=None, table=None):
         """
@@ -122,13 +129,21 @@ class DBInterface:
         """
         pass
 
-    def select(self, filter=None, database=None, table=None):
+    def select(self, filter=None, database=None, table=None, fields=None, **kwargs):
         """
         selects data in database and table with set_filter
         """
-        pass
+        if filter is None:
+            filter = self.filter
+        if database is None:
+            database = self.database
+        if table is None:
+            table = self.table
+        if fields is None:
+            fields = []
+        return filter, database, table, fields
 
-    def remove(self, filter=None, database=None, table=None):
+    def delete(self, filter=None, database=None, table=None):
         """
         removes data in database and table with set_filter
         """
