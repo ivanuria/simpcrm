@@ -4,6 +4,12 @@ import sqlite3
 from databases import Data, DBInterface
 from databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
 
+def data_factory(cursor, row): # Stolen from documentation
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
 class SqliteInterface(DBInterface):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -103,6 +109,7 @@ class SqliteInterface(DBInterface):
 
     def connect(self):
         self._conn = sqlite3.connect(self._server)
+        self._conn.row_factory = dict_factory
         self._cursor = self._conn.Cursor()
 
     def disconnect(self):
@@ -131,7 +138,7 @@ class SqliteInterface(DBInterface):
         sql, safe = self._create_sql_query(method=DROP_TABLE,
                                             table=table)
         self.cursor.execute(sql, safe)
-        self.cursor.commit()
+        return Data(self.cursor.fetchall())
 
     # Executings
 
@@ -160,6 +167,8 @@ class SqliteInterface(DBInterface):
                                             fields=fields,
                                             data=values,
                                             filter=filter)
+        self.cursor.execute(sql, safe)
+        self.cursor.commit()
 
     def delete(self, **kwargs):
         filter, database, table = super().delete(**kwargs)
