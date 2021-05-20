@@ -5,6 +5,7 @@ INSERT = "INSERT"
 UPDATE = "UPDATE"
 DELETE = "DELETE"
 CREATE_TABLE = "CREATE TABLE"
+DROP_TABLE = "DROP TABLE"
 
 class Data(list): #not checked datatypes
     def __init__(self, data):
@@ -104,61 +105,11 @@ class DBInterface:
         """
         pass
 
-    def insert(self, data, database=None, table=None):
-        """
-        inserts data in database and table
-        """
-        assert isinstace(data, dict)
-        if database is None:
-            database = self.database
-        if table is None:
-            table = self.table
-        if fields is None:
-            fields = []
-        fields, values = list(data.keys()), list(data.values())
-
     def check_table_exists(self, table, database=None, table=None):
         """
         checkes if table exists
         """
         pass
-
-    def update(self, data, filter=None, database=None, table=None):
-        """
-        inserts data in database and table with set_filter
-        """
-        pass
-
-    def select(self, filter=None, database=None, table=None, fields=None, **kwargs):
-        """
-        selects data in database and table with set_filter
-        """
-        if filter is None:
-            filter = self.filter
-        if database is None:
-            database = self.database
-        if table is None:
-            table = self.table
-        if fields is None:
-            fields = []
-        return filter, database, table, fields
-
-    def delete(self, filter=None, database=None, table=None):
-        """
-        removes data in database and table with set_filter
-        """
-        pass
-
-    def drop_table(self, database=None, table=None):
-        """
-        drops selected table
-        """
-        pass
-
-    def create_table(self, table, fields={}):
-        """
-        creates table with fields definition
-        """
 
     def delete_database(self, database=None):
         """
@@ -176,3 +127,74 @@ class DBInterface:
                     "filter" in kwargs,
                     "fields" in kwargs,
                     "data" in kwargs)
+
+    def create_table(self, table, fields={}):
+        """
+        creates table with fields definition
+        """
+
+    def drop_table(self, database=None, table=None):
+        """
+        drops selected table
+        """
+        if database is None:
+            database = self.database
+        if table is None:
+            table = self.table
+        return database, table
+
+    def select(self, filter=None, database=None, table=None, fields=None, **kwargs):
+        """
+        selects data in database and table with set_filter
+        """
+        if filter is None:
+            filter = self.filter
+        if database is None:
+            database = self.database
+        if table is None:
+            table = self.table
+        if fields is None:
+            fields = []
+        return filter, database, table, fields
+
+    def insert(self, data, database=None, table=None):
+        """
+        inserts data in database and table
+        """
+        assert isinstace(data, dict)
+        if database is None:
+            database = self.database
+        if table is None:
+            table = self.table
+        if fields is None:
+            fields = []
+        fields, values = list(data.keys()), list(data.values())
+        return database, table, fields, values
+
+    def update(self, data, filter=None, database=None, table=None):
+        """
+        inserts data in database and table with set_filter
+        """
+        assert isinstace(data, dict)
+        if filter is None:
+            filter = self.filter
+        if database is None:
+            database = self.database
+        if table is None:
+            table = self.table
+        if fields is None:
+            fields = []
+        fields, values = list(data.keys()), list(data.values())
+        return filter, database, table, fields, values
+
+    def delete(self, filter=None, database=None, table=None):
+        """
+        removes data in database and table with set_filter
+        """
+        if filter is None:
+            filter = self.filter
+        if database is None:
+            database = self.database
+        if table is None:
+            table = self.table
+        return filter, database, table
