@@ -23,6 +23,7 @@ class SqliteInterface(DBInterface):
 
     # Static Methods
 
+    @classmethod
     def _create_filter_query(cls, filter):
         assert isinstance(filter, dict)
         if not filter:
@@ -35,9 +36,11 @@ class SqliteInterface(DBInterface):
             safe["filter_"+key+"_value"] = filter[key]
         return string, safe
 
+    @classmethod
     def _create_fields_pairing(cls, fields, data, joiner=" "):
         fields = list(set(fields))
         assert len(fields) == len(data)
+        sql_safe_passing = {}
         pairs = zip(fields, data)
         pairing = ", ".join([joiner.join((":"+item[0]+"_key", ":"+item[0]+"_value")) for item in pairs])
         for key, value in pairs:
@@ -45,7 +48,8 @@ class SqliteInterface(DBInterface):
             sql_safe_passing[key+"_value"] = value
         return pairing, sql_safe_passing
 
-    def _create_fields_value_for_insert(cls, fields, data, values):
+    @classmethod
+    def _create_fields_value_for_insert(cls, fields, values):
         assert len(fields) == len(values)
         safe = {}
         fields_str = ", ".join([":"+key+"_key" for key in fields])
@@ -55,6 +59,7 @@ class SqliteInterface(DBInterface):
             safe[key+"_value"] = values[index]
         return fields_str, values_str, safe
 
+    @classmethod
     def _create_sql_query(cls, **kwargs):
         cls._create_sql_query(**kwargs)
         table = kwargs["table"]

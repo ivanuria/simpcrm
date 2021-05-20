@@ -25,24 +25,24 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.db.disconnect()
 
     def test__create_filter_query(self):
-        self.assertEqual(self.db._create_filter_query({}), ("", {}))
-        self.assertEqual(self.db._create_filter_query(["name", "age"], ["María", 26]),
+        self.assertEqual(SQLite._create_filter_query({}), ("", {}))
+        self.assertEqual(SQLite._create_filter_query({"name": "María", "age": 26}),
                         ("WHERE :filter_name_key = :filter_name_value and :filter_age_key = :filter_age_value",
                         {"filter_name_key": "name", "filter_name_value": "María",
                         "filter_age_key": "age", "filter_age_value": 26}))
 
     def test__create_fields_pairing(self):
-        self.assertEqual(self.db._create_fields_pairing(["name", "age"], ["María", 26]),
+        self.assertEqual(SQLite._create_fields_pairing(["name", "age"], ["María", 26]),
                          (":name_key :name_value, :age_key :age_value",
                          {"name_key": "name", "name_value": "María",
                          "age_key": "age", "age_value": 26}))
-        self.assertEqual(self.db._create_fields_pairing(["name", "age"], ["María", 26]),
+        self.assertEqual(SQLite._create_fields_pairing(["name", "age"], ["María", 26]),
                          (":name_key=:name_value, :age_key=:age_value",
                          {"name_key": "name", "name_value": "María",
                          "age_key": "age", "age_value": 26}))
 
     def test__create_fields_value_for_insert(self):
-        self.assertEqual(self.db._create_fields_value_for_insert(["name", "age"], ["María", 26]),
+        self.assertEqual(SQLite._create_fields_value_for_insert(["name", "age"], ["María", 26]),
                         (":name_key, :age_key", ":name_value, :age_value", {"name_key": "name", "name_value": "María",
                         "age_key": "age", "age_value": 26}))
 
