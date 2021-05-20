@@ -117,7 +117,7 @@ class SqliteInterface(DBInterface):
         self._cursor = self._conn.cursor()
 
     def disconnect(self):
-        self._conn.disconnect()
+        self._conn.close()
 
     # Tables operations
     def create_table(self, table, fields={}):
