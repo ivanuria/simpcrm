@@ -1,8 +1,8 @@
 # sqlite.py file inheriting from databases.py
 
 import sqlite3
-from databases import Data, DBInterface
-from databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
+from databases.databases import Data, DBInterface
+from databases.databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
 
 def data_factory(cursor, row): # Stolen from documentation
     d = {}
@@ -37,7 +37,7 @@ class SqliteInterface(DBInterface):
         fields = list(set(fields))
         assert len(fields) == len(data)
         pairs = zip(fields, data)
-        pairing = ", ".join([joiner.join((":"+item[0]+"_key", ":"+item[0]+"_value") for item in pairs])
+        pairing = ", ".join([joiner.join((":"+item[0]+"_key", ":"+item[0]+"_value")) for item in pairs])
         for key, value in pairs:
             sql_safe_passing[key+"_key"] = key
             sql_safe_passing[key+"_value"] = value

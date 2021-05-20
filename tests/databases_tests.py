@@ -4,7 +4,7 @@
 VERSION = 0.1
 
 import unittest
-from databases.sqlite import SQLite
+from databases.sqlite import SqliteInterface as SQLite
 from databases.databases import Data
 from sqlite3 import Error
 

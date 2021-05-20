@@ -3,5 +3,5 @@
 
 VERSION = 0.1
 
-from .sqlite import SQLite
+from .sqlite import SqliteInterface
 from .databases import Data

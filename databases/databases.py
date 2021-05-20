@@ -24,7 +24,7 @@ class DBInterface:
             password -> password to access server
             encription -> if encription is needed
         """
-        self._database, self._user, self._password, self._encription = [""]*
+        self._database, self._user, self._password, self._encription = [""]
         if "database" in kwargs:
             self._database = kwargs["database"]
         if "server" in kwargs:
@@ -105,7 +105,7 @@ class DBInterface:
         """
         pass
 
-    def check_table_exists(self, table, database=None, table=None):
+    def check_table_exists(self, table, database=None):
         """
         checkes if table exists
         """
