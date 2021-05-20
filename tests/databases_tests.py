@@ -3,13 +3,14 @@
 
 VERSION = 0.1
 
-import unittesting
-import databases
+import unittest
+from databases.sqlite import SQLite
+from databases.databases import Data
 from sqlite3 import Error
 
 class v1_Databases_sqlite(unittest.TestCase):
     def setUp(self):
-        self.db = databases.SQLite(server=databases.sqlite.MEMORY)
+        self.db = SQLite(server=databases.sqlite.MEMORY)
         self.db.connect()
         self.cursor = self.db.__cursor
         self.cursor.execute("""Create table customers
@@ -69,7 +70,7 @@ class v1_Databases_sqlite(unittest.TestCase):
     def test_select_many(self):
         self.db.set_table("customers")
         self.assertEqual(self.db.select(),
-            databases.Data([{"id": 1, "name": "María", "age": 49, "phone": "+34666777888"},
+            databases.Data({"id": 1, "name": "María", "age": 49, "phone": "+34666777888"},
             {"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
 
     def test_update(self):
@@ -82,10 +83,10 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.db.set_table("customers")
         self.db.delete(filter={"name": "María"})
         self.assertEqual(self.db.select(),
-            databases.Data([{"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
+            databases.Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
 
     def test_create_table(self):
-        self.db.create_table("hell", {"name": "text", "love", "integer"})
+        self.db.create_table("hell", {"name": "text", "love": "integer"})
         self.db.set_table("hell")
         self.db.insert({"name": "hola", "love": 2})
         self.assertEqual(self.sb.select(filter={"name": "hola"}),
