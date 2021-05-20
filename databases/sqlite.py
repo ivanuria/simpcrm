@@ -6,7 +6,7 @@ from databases.databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DR
 
 MEMORY = ":memory:"
 
-def data_factory(cursor, row): # Stolen from documentation
+def dict_factory(cursor, row): # Stolen from documentation
     d = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
