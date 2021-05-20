@@ -114,7 +114,7 @@ class SqliteInterface(DBInterface):
     def connect(self):
         self._conn = sqlite3.connect(self._server)
         self._conn.row_factory = dict_factory
-        self._cursor = self._conn.Cursor()
+        self._cursor = self._conn.cursor()
 
     def disconnect(self):
         self._conn.disconnect()
@@ -132,7 +132,7 @@ class SqliteInterface(DBInterface):
                                 data=data)
         sql, safe = self._create_sql_query(**kwargs)
         self.cursor.execute(sql, safe)
-        self.cursor.commit()
+        self._conn.commit()
 
     def drop_table(self, database=None, table=None):
         """
@@ -153,7 +153,7 @@ class SqliteInterface(DBInterface):
                                             fields=fields,
                                             filter=filter)
         self.cursor.execute(sql, safe)
-        self.cursor.commit()
+        self._conn.commit()
 
     def insert(self, **kwargs):
         database, table, fields, values = super().insert(**kwargs)
@@ -162,7 +162,7 @@ class SqliteInterface(DBInterface):
                                             fields=fields,
                                             data=values)
         self.cursor.execute(sql, safe)
-        self.cursor.commit()
+        self._conn.commit()
 
     def update(self, **kwargs):
         filter, database, table, fields, values = super().update(**kwargs)
@@ -172,7 +172,7 @@ class SqliteInterface(DBInterface):
                                             data=values,
                                             filter=filter)
         self.cursor.execute(sql, safe)
-        self.cursor.commit()
+        self._conn.commit()
 
     def delete(self, **kwargs):
         filter, database, table = super().delete(**kwargs)
@@ -180,4 +180,4 @@ class SqliteInterface(DBInterface):
                                             table=table,
                                             filter=filter)
         self.cursor.execute(sql, safe)
-        self.cursor.commit()
+        self._conn.commit()

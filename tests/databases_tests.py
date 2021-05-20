@@ -12,13 +12,14 @@ class v1_Databases_sqlite(unittest.TestCase):
     def setUp(self):
         self.db = SQLite(server=MEMORY)
         self.db.connect()
-        self.cursor = self.db.__cursor
+        self.cursor = self.db._cursor
+        self.conn = self.db._conn
         self.cursor.execute("""Create table customers
             (id integer primary key, name text, phone text, age integer)""")
         self.cursor.execute(""" insert into customers (name, phone, age)
             values (:name, :phone, :age)""",
             {"name": "María", "age": 49, "phone": "+34666777888"})
-        self.cursor.commit()
+        self.conn.commit()
 
     def tearDown(self):
         self.db.disconnect()
