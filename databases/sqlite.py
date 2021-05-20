@@ -23,6 +23,8 @@ class SqliteInterface(DBInterface):
 
     def _create_filter_query(cls, filter):
         assert isinstance(filter, dict)
+        if not filter:
+            return "", {}
         string = " and ".join([":filter_"+key+"_key = :filter_"+key+"_value" for key in filter])
         string = "WHERE {}".format(string)
         safe = {}
@@ -83,7 +85,7 @@ class SqliteInterface(DBInterface):
             sql_string = template[method].format(fields=fields_str,
                                                 values=values_str)
         elif method == UPDATE:
-            pairing, sql_safe_passing = cls._create_fields_pairing(fields, "=")
+            pairing, sql_safe_passing = cls._create_fields_pairing(fields, data, "=")
             where_str, safe = cls._create_filter_query(filter)
             sql_string = template[method].format(pairing=pairing, where=where_str)
             sql_safe_passing["table"] = table
@@ -93,7 +95,7 @@ class SqliteInterface(DBInterface):
             sql_safe_passing["table"] = table
             sql_string = template[method].format(where=where_str)
         elif method == CREATE_TABLE:
-            pairing, sql_safe_passing = cls._create_fields_pairing(fields, " ")
+            pairing, sql_safe_passing = cls._create_fields_pairing(fields, data, " ")
             if exists:
                 exists_str = "IF NOT EXISTS"
             else:
