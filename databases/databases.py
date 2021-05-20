@@ -24,7 +24,7 @@ class DBInterface:
             password -> password to access server
             encription -> if encription is needed
         """
-        self._database, self._user, self._password, self._encription = [""]
+        self._database, self._user, self._password, self._encription = [""]*4
         if "database" in kwargs:
             self._database = kwargs["database"]
         if "server" in kwargs:

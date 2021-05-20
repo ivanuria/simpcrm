@@ -4,13 +4,13 @@
 VERSION = 0.1
 
 import unittest
-from databases.sqlite import SqliteInterface as SQLite
+from databases.sqlite import SqliteInterface as SQLite, MEMORY
 from databases.databases import Data
 from sqlite3 import Error
 
 class v1_Databases_sqlite(unittest.TestCase):
     def setUp(self):
-        self.db = SQLite(server=databases.sqlite.MEMORY)
+        self.db = SQLite(server=MEMORY)
         self.db.connect()
         self.cursor = self.db.__cursor
         self.cursor.execute("""Create table customers
