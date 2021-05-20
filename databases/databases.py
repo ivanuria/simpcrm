@@ -122,11 +122,6 @@ class DBInterface:
         creates sql query with given args
           kwargs may have: "table", "method", "fields", "data"
         """
-        assert all("table" in kwargs,
-                    "method" in kwargs,
-                    "filter" in kwargs,
-                    "fields" in kwargs,
-                    "data" in kwargs)
 
     def create_table(self, table, fields={}):
         """

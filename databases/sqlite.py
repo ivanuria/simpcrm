@@ -61,7 +61,11 @@ class SqliteInterface(DBInterface):
 
     @classmethod
     def _create_sql_query(cls, **kwargs):
-        cls._create_sql_query(**kwargs)
+        assert all("table" in kwargs,
+                    "method" in kwargs,
+                    "filter" in kwargs,
+                    "fields" in kwargs,
+                    "data" in kwargs)
         table = kwargs["table"]
         method = kwargs["method"]
         fields = kwargs["fields"]
@@ -128,8 +132,8 @@ class SqliteInterface(DBInterface):
     def create_table(self, table, fields={}):
         assert fields # Thay must not be void
         if isinstance (fields, dict):
-            fields = fields.keys()
             data = fields.values()
+            fields = fields.keys()
         kwargs = self.sql_dict
         kwargs.update(method=CREATE_TABLE,
                                 table=table,
