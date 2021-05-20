@@ -156,7 +156,7 @@ class DBInterface:
         """
         inserts data in database and table
         """
-        assert isinstace(data, dict)
+        assert isinstance(data, dict)
         if database is None:
             database = self.database
         if table is None:
@@ -170,7 +170,7 @@ class DBInterface:
         """
         inserts data in database and table with set_filter
         """
-        assert isinstace(data, dict)
+        assert isinstance(data, dict)
         if filter is None:
             filter = self.filter
         if database is None:

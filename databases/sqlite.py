@@ -61,11 +61,11 @@ class SqliteInterface(DBInterface):
 
     @classmethod
     def _create_sql_query(cls, **kwargs):
-        assert all("table" in kwargs,
+        assert all(["table" in kwargs,
                     "method" in kwargs,
                     "filter" in kwargs,
                     "fields" in kwargs,
-                    "data" in kwargs)
+                    "data" in kwargs])
         table = kwargs["table"]
         method = kwargs["method"]
         fields = kwargs["fields"]
