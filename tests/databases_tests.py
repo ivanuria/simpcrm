@@ -27,7 +27,7 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.assertEqual(self.db._create_filter_query(["name", "age"], ["María", 26],
                         ("WHERE :filter_name_key = :filter_name_value and :filter_age_key = :filter_age_value",
                         {"filter_name_key": "name", "filter_name_value": "María",
-                        "filter_age_key": "age", "filter_age_value": 26}))
+                        "filter_age_key": "age", "filter_age_value": 26})))
 
     def test__create_fields_pairing(self):
         self.assertEqual(self.db._create_fields_pairing(["name", "age"], ["María", 26],
