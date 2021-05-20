@@ -4,6 +4,8 @@ import sqlite3
 from databases.databases import Data, DBInterface
 from databases.databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
 
+MEMORY = ":memory:"
+
 def data_factory(cursor, row): # Stolen from documentation
     d = {}
     for idx, col in enumerate(cursor.description):
