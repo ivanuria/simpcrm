@@ -35,7 +35,7 @@ class SqliteInterface(DBInterface):
             safe["filter_"+key+"_value"] = filter[key]
         return string, safe
 
-    def _create_fields_pairing(cls, fields, joiner=" "):
+    def _create_fields_pairing(cls, fields, data, joiner=" "):
         fields = list(set(fields))
         assert len(fields) == len(data)
         pairs = zip(fields, data)
@@ -45,7 +45,7 @@ class SqliteInterface(DBInterface):
             sql_safe_passing[key+"_value"] = value
         return pairing, sql_safe_passing
 
-    def _create_fields_value_for_insert(cls, fields, values):
+    def _create_fields_value_for_insert(cls, fields, data, values):
         assert len(fields) == len(values)
         safe = {}
         fields_str = ", ".join([":"+key+"_key" for key in fields])
