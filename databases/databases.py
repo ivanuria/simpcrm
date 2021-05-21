@@ -38,6 +38,7 @@ class DBInterface:
         if "encription" in kwargs:
             self._encription = kwargs["encription"]
         self._table = ""
+        self._filter = {}
 
     @property
     def database(self):
@@ -65,7 +66,7 @@ class DBInterface:
         """
         returns active filter
         """
-        pass
+        return self._filter
 
     @property
     def sql_dict(self):
