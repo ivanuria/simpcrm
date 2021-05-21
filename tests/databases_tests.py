@@ -58,7 +58,7 @@ class v1_Databases_sqlite(unittest.TestCase):
                                                    fields=["a", "b"],
                                                    data=[1, "dos"],
                                                    method=INSERT),
-                        ("INSERT INTO foo (a, b) (:avalue, :bvalue);",
+                        ("INSERT INTO foo (a, b) VALUES (:avalue, :bvalue);",
                         {"avalue": 1, "bvalue": "dos"}))
 
     def test__create_sql_query_update(self):
@@ -94,10 +94,10 @@ class v1_Databases_sqlite(unittest.TestCase):
 
     def test_set_filter(self):
         self.db.set_filter({"name": "María"})
-        self.assertEqual(self.db.filter, """where name = 'María'""")
+        self.assertEqual(self.db.filter, {"name": "María"})
         self.db.set_filter({"name": "María", "age": 49})
         self.assertEqual(self.db.filter,
-            """where name = 'María' and age = 49 """)
+            {"name": "María", "age": 49})
 
     def test_set_table(self):
         self.db.set_table("customers")
@@ -106,37 +106,37 @@ class v1_Databases_sqlite(unittest.TestCase):
     def test_select(self):
         self.db.set_table("customers")
         self.assertEqual(self.db.select(filter={"name": "María"}),
-            databases.Data({"id": 1, "name": "María", "age": 49, "phone": "+34666777888"}))
+            Data({"id": 1, "name": "María", "age": 49, "phone": "+34666777888"}))
 
     def test_insert(self):
         self.db.set_table("customers")
         self.db.insert(data={"name": "José", "age": 33, "phone": "+34777888999"})
         self.assertEqual(self.db.select(filter={"name": "José"}),
-            databases.Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
+            Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
 
     def test_select_many(self):
         self.db.set_table("customers")
         self.assertEqual(self.db.select(),
-            databases.Data({"id": 1, "name": "María", "age": 49, "phone": "+34666777888"},
+            Data({"id": 1, "name": "María", "age": 49, "phone": "+34666777888"},
             {"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
 
     def test_update(self):
         self.db.set_table("customers")
         self.db.update({"name": "María"}, filter={"age": 25})
         self.assertEqual(self.db.select(filter={"name": "María"}),
-            databases.Data({"id": 1, "name": "María", "age": 25, "phone": "+34666777888"}))
+            Data({"id": 1, "name": "María", "age": 25, "phone": "+34666777888"}))
 
     def test_delete(self):
         self.db.set_table("customers")
         self.db.delete(filter={"name": "María"})
         self.assertEqual(self.db.select(),
-            databases.Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
+            Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
 
     def test_create_table(self):
         self.db.create_table("hell", {"name": "text", "love": "integer"})
         self.db.set_table("hell")
         self.db.insert({"name": "hola", "love": 2})
-        self.assertEqual(self.sb.select(filter={"name": "hola"}),
+        self.assertEqual(self.db.select(filter={"name": "hola"}),
                         Data({"name": "hola", "love": 2}))
 
     def test_drop_table(self):

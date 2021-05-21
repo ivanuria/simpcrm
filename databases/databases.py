@@ -105,7 +105,7 @@ class DBInterface:
         """
         sets filter
         """
-        pass
+        self._filter = filter
 
     def check_table_exists(self, table, database=None):
         """

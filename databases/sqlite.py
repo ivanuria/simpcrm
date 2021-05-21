@@ -81,14 +81,17 @@ class SqliteInterface(DBInterface):
         sql_string = ""
         sql_safe_passing = {}
         template = {SELECT: "SELECT {fields} FROM {table} {where};",
-                    INSERT: "INSERT INTO {table} ({fields}) ({values});",
+                    INSERT: "INSERT INTO {table} ({fields}) VALUES ({values});",
                     UPDATE: "UPDATE {table} SET {pairing} {where};",
                     DELETE: "DELETE from {table} {where};",
                     CREATE_TABLE: "CREATE TABLE {exists} {table} ({pairing});",
                     DROP_TABLE: "DROP TABLE IF EXISTS {table}"}
 
         if method == SELECT:
-            field_str = ", ".join(fields)
+            if fields and (isinstance(fields, list) or isinstance(fields, tuple)):
+                field_str = ", ".join(fields)
+            else:
+                field_str = "*"
             where_str, sql_safe_passing = self._create_filter_query(filter)
             sql_string = template[method].format(fields=field_str,
                                                 where=where_str,
@@ -120,6 +123,7 @@ class SqliteInterface(DBInterface):
         elif method == DROP_TABLE:
             sql_string = template[method].format(table=table)
 
+        print("\t", sql_string, sql_safe_passing, "\n")
         return sql_string, sql_safe_passing
     # Connection Methods
 
@@ -165,7 +169,7 @@ class SqliteInterface(DBInterface):
                                             fields=fields,
                                             filter=filter)
         self.cursor.execute(sql, safe)
-        self._conn.commit()
+        return Data(self.cursor.fetchall())
 
     def insert(self, data, **kwargs):
         database, table, fields, values = super().insert(data, **kwargs)
