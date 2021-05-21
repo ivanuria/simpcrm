@@ -169,7 +169,9 @@ class SqliteInterface(DBInterface):
                                             fields=fields,
                                             filter=filter)
         self.cursor.execute(sql, safe)
-        return Data(self.cursor.fetchall())
+        final = Data(self.cursor.fetchall())
+        print(final)
+        return final
 
     def insert(self, data, **kwargs):
         database, table, fields, values = super().insert(data, **kwargs)

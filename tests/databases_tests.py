@@ -116,18 +116,20 @@ class v1_Databases_sqlite(unittest.TestCase):
 
     def test_select_many(self):
         self.db.set_table("customers")
+        self.db.insert(data={"name": "José", "age": 33, "phone": "+34777888999"})
         self.assertEqual(self.db.select(),
             Data([{"id": 1, "name": "María", "age": 49, "phone": "+34666777888"},
             {"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}]))
 
     def test_update(self):
         self.db.set_table("customers")
-        self.db.update({"name": "María"}, filter={"age": 25})
+        self.db.update({"age": 25}, filter={"name": "María"})
         self.assertEqual(self.db.select(filter={"name": "María"}),
             Data({"id": 1, "name": "María", "age": 25, "phone": "+34666777888"}))
 
     def test_delete(self):
         self.db.set_table("customers")
+        self.db.insert(data={"name": "José", "age": 33, "phone": "+34777888999"})
         self.db.delete(filter={"name": "María"})
         self.assertEqual(self.db.select(),
             Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
@@ -142,6 +144,7 @@ class v1_Databases_sqlite(unittest.TestCase):
     def test_drop_table(self):
         self.db.drop_table("hell")
         with self.assertRaises(Error):
+            self.db.set_table("hell")
             self.db.insert({"name": "halo", "love": 10})
 
 
