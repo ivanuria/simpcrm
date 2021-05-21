@@ -123,7 +123,6 @@ class SqliteInterface(DBInterface):
         elif method == DROP_TABLE:
             sql_string = template[method].format(table=table)
 
-        print("\t", sql_string, sql_safe_passing, "\n")
         return sql_string, sql_safe_passing
     # Connection Methods
 
@@ -169,9 +168,7 @@ class SqliteInterface(DBInterface):
                                             fields=fields,
                                             filter=filter)
         self.cursor.execute(sql, safe)
-        final = Data(self.cursor.fetchall())
-        print(final)
-        return final
+        return Data(self.cursor.fetchall())
 
     def insert(self, data, **kwargs):
         database, table, fields, values = super().insert(data, **kwargs)
