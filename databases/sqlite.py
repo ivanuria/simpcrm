@@ -28,39 +28,40 @@ class SqliteInterface(DBInterface):
         assert isinstance(filter, dict)
         if not filter:
             return "", {}
-        string = " and ".join([":filter_"+key+"_key = :filter_"+key+"_value" for key in filter])
+        string = " and ".join([key+" = :filter"+key+"value" for key in filter])
         string = "WHERE {}".format(string)
         safe = {}
         for key in filter:
-            safe["filter_"+key+"_key"] = key
-            safe["filter_"+key+"_value"] = filter[key]
+            safe["filter"+key+"value"] = filter[key]
         return string, safe
 
     @classmethod
     def _create_fields_pairing(cls, fields, data, joiner=" "):
-        fields = list(set(fields))
-        assert len(fields) == len(data)
+        assert len(set(fields)) == len(data)
         sql_safe_passing = {}
-        pairs = zip(fields, data)
-        pairing = ", ".join([joiner.join((":"+item[0]+"_key", ":"+item[0]+"_value")) for item in pairs])
-        for key, value in pairs:
-            sql_safe_passing[key+"_key"] = key
-            sql_safe_passing[key+"_value"] = value
+        pairs = list(zip(fields, data))
+        if joiner == " ":
+            pairing = ", ".join([joiner.join((item[0], str(item[1]))) for item in pairs])
+        else:
+            pairing = ", ".join([joiner.join((item[0], ":"+item[0]+"value")) for item in pairs])
+            for key, value in pairs:
+                sql_safe_passing[key+"value"] = value
         return pairing, sql_safe_passing
 
     @classmethod
     def _create_fields_value_for_insert(cls, fields, values):
         assert len(fields) == len(values)
         safe = {}
-        fields_str = ", ".join([":"+key+"_key" for key in fields])
-        values_str = ", ".join([":"+key+"_value" for key in fields])
+        fields_str = ", ".join([key for key in fields])
+        values_str = ", ".join([":"+key+"value" for key in fields])
         for index, key in enumerate(fields):
-            safe[key+"_key"] = key
-            safe[key+"_value"] = values[index]
+            safe[key+"value"] = values[index]
         return fields_str, values_str, safe
 
-    @classmethod
-    def _create_sql_query(cls, **kwargs):
+    def _create_sql_query(self, **kwargs):
+        d = self.sql_dict
+        d.update(kwargs)
+        kwargs = d
         assert all(["table" in kwargs,
                     "method" in kwargs,
                     "filter" in kwargs,
@@ -71,51 +72,53 @@ class SqliteInterface(DBInterface):
         fields = kwargs["fields"]
         data = kwargs["data"]
         filter = kwargs["filter"]
+        if not isinstance(filter, dict):
+            filter = {}
         if "exists" in kwargs:
             exists = kwargs["exists"]
         else:
             exists = False
         sql_string = ""
         sql_safe_passing = {}
-        template = {SELECT: "SELECT {fields} FROM :table {where};",
-                    INSERT: "INSERT INTO :table ({fields}) ({values});",
-                    UPDATE: "UPDATE :table SET {pairing} {where};",
-                    DELETE: "DELETE from :table {where};",
-                    CREATE_TABLE: "CREATE TABLE {exists} :table ({pairing});",
-                    DROP_TABLE: "DROP TABLE IF EXISTS :table"}
+        template = {SELECT: "SELECT {fields} FROM {table} {where};",
+                    INSERT: "INSERT INTO {table} ({fields}) ({values});",
+                    UPDATE: "UPDATE {table} SET {pairing} {where};",
+                    DELETE: "DELETE from {table} {where};",
+                    CREATE_TABLE: "CREATE TABLE {exists} {table} ({pairing});",
+                    DROP_TABLE: "DROP TABLE IF EXISTS {table}"}
 
         if method == SELECT:
             field_str = ", ".join(fields)
-            where_str, sql_safe_passing = cls._create_filter_query(filter)
-            sql_safe_passing["table"] = table
+            where_str, sql_safe_passing = self._create_filter_query(filter)
             sql_string = template[method].format(fields=field_str,
-                                                where=where_str)
+                                                where=where_str,
+                                                table=table)
         elif method == INSERT:
-            fields_str, values_str, sql_safe_passing = cls._create_fields_value_for_insert(fields, data)
-            sql_safe_passing["table"] = table
+            fields_str, values_str, sql_safe_passing = self._create_fields_value_for_insert(fields, data)
             sql_string = template[method].format(fields=fields_str,
-                                                values=values_str)
+                                                values=values_str,
+                                                table=table)
         elif method == UPDATE:
-            pairing, sql_safe_passing = cls._create_fields_pairing(fields, data, "=")
-            where_str, safe = cls._create_filter_query(filter)
-            sql_string = template[method].format(pairing=pairing, where=where_str)
-            sql_safe_passing["table"] = table
+            pairing, sql_safe_passing = self._create_fields_pairing(fields, data, "=")
+            where_str, safe = self._create_filter_query(filter)
+            sql_string = template[method].format(pairing=pairing,
+                                                 where=where_str,
+                                                 table=table)
             sql_safe_passing.update(safe)
         elif method == DELETE:
-            where_str, sql_safe_passing = cls._create_filter_query(filter)
-            sql_safe_passing["table"] = table
-            sql_string = template[method].format(where=where_str)
+            where_str, sql_safe_passing = self._create_filter_query(filter)
+            sql_string = template[method].format(where=where_str, table=table)
         elif method == CREATE_TABLE:
-            pairing, sql_safe_passing = cls._create_fields_pairing(fields, data, " ")
+            pairing, sql_safe_passing = self._create_fields_pairing(fields, data, " ")
             if exists:
                 exists_str = "IF NOT EXISTS"
             else:
                 exists_str = ""
-            sql_string = template[method].format(pairing=pairing, exists=exists_str)
-            sql_safe_passing["table"] = table
+            sql_string = template[method].format(pairing=pairing,
+                                                 exists=exists_str,
+                                                 table=table)
         elif method == DROP_TABLE:
-            sql_string = template[method]
-            sql_safe_passing["table"] = table
+            sql_string = template[method].format(table=table)
 
         return sql_string, sql_safe_passing
     # Connection Methods
@@ -143,7 +146,7 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self._conn.commit()
 
-    def drop_table(self, database=None, table=None):
+    def drop_table(self, table, database=None):
         """
         drops selected table
         """
@@ -164,8 +167,8 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self._conn.commit()
 
-    def insert(self, **kwargs):
-        database, table, fields, values = super().insert(**kwargs)
+    def insert(self, data, **kwargs):
+        database, table, fields, values = super().insert(data, **kwargs)
         sql, safe = self._create_sql_query(method=INSERT,
                                             table=table,
                                             fields=fields,
@@ -173,8 +176,8 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self._conn.commit()
 
-    def update(self, **kwargs):
-        filter, database, table, fields, values = super().update(**kwargs)
+    def update(self, data, **kwargs):
+        filter, database, table, fields, values = super().update(data, **kwargs)
         sql, safe = self._create_sql_query(method=UPDATE,
                                             table=table,
                                             fields=fields,

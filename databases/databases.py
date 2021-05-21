@@ -37,6 +37,7 @@ class DBInterface:
             self._password = kwargs["password"]
         if "encription" in kwargs:
             self._encription = kwargs["encription"]
+        self._table = ""
 
     @property
     def database(self):
@@ -57,7 +58,7 @@ class DBInterface:
         """
         returns active table name
         """
-        pass
+        return self._table
 
     @property
     def filter(self):
@@ -72,7 +73,8 @@ class DBInterface:
                 "filter": self.filter,
                 "method": SELECT,
                 "fields": [],
-                "data": []
+                "data": [],
+                "exists":True
                 }
 
     def connect(self):
@@ -161,8 +163,6 @@ class DBInterface:
             database = self.database
         if table is None:
             table = self.table
-        if fields is None:
-            fields = []
         fields, values = list(data.keys()), list(data.values())
         return database, table, fields, values
 
@@ -177,8 +177,6 @@ class DBInterface:
             database = self.database
         if table is None:
             table = self.table
-        if fields is None:
-            fields = []
         fields, values = list(data.keys()), list(data.values())
         return filter, database, table, fields, values
 
