@@ -1,6 +1,9 @@
 # Fields definitions
+from collections import defaultdict
+
 
 class Field:
+
     def __init__(self, name, definition, description=""):
         self._name = name
         self._definition = definition
