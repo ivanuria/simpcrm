@@ -3,6 +3,8 @@
 import sqlite3
 from databases.databases import Data, DBInterface
 from databases.databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
+from databases.databases import PRIMARY
+from collections import defaultdict
 
 MEMORY = ":memory:"
 
@@ -41,7 +43,28 @@ class SqliteInterface(DBInterface):
         sql_safe_passing = {}
         pairs = list(zip(fields, data))
         if joiner == " ":
-            pairing = ", ".join([joiner.join((item[0], str(item[1]))) for item in pairs])
+            """
+            NULL. The value is a NULL value.
+            INTEGER. The value is a signed integer, stored in 1, 2, 3, 4, 6, or 8 bytes depending on the magnitude of the value.
+            REAL. The value is a floating point value, stored as an 8-byte IEEE floating point number.
+            TEXT. The value is a text string, stored using the database encoding (UTF-8, UTF-16BE or UTF-16LE).
+            BLOB. The value is a blob of data, stored exactly as it was input.
+            """
+            defs = defaultdict(lambda: "TEXT",
+                                {PRIMARY: "PRIMARY KEY",
+                                str: "TEXT",
+                                int: "INTEGER",
+                                float: "REAL",
+                                None: "NULL",
+                                object: "BLOB"})
+            for index, item in enumerate(pairs):
+                if not isinstance(item[1], list) and not isinstance(item[1], tuple):
+                    pairs[index] = [item[0], [item[1]]]
+                final_item = []
+                for definition in pairs[index][1]:
+                    final_item.append(defs[definition])
+                pairs[index] = [item[0], final_item]
+            pairing = ", ".join([joiner.join((item[0], " ".join(item[1]))) for item in pairs])
         else:
             pairing = ", ".join([joiner.join((item[0], ":"+item[0]+"value")) for item in pairs])
             for key, value in pairs:

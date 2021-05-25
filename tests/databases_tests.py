@@ -32,8 +32,8 @@ class v1_Databases_sqlite(unittest.TestCase):
                          "filteragevalue": 26}))
 
     def test__create_fields_pairing(self):
-        self.assertEqual(SQLite._create_fields_pairing(["name", "age"], ["text", "integer"]),
-                         ("name text, age integer",
+        self.assertEqual(SQLite._create_fields_pairing(["name", "age"], [str, int]),
+                         ("name TEXT, age INTEGER",
                          {}))
         self.assertEqual(SQLite._create_fields_pairing(["name", "age"], ["María", 26], joiner="="),
                          ("name=:namevalue, age=:agevalue",
@@ -80,10 +80,10 @@ class v1_Databases_sqlite(unittest.TestCase):
     def test__create_sql_query_create_table(self):
         self.assertEqual(self.db._create_sql_query(table="foo",
                                                    fields=["a", "b"],
-                                                   data=["integer", "text"],
+                                                   data=[int, str],
                                                    method=CREATE_TABLE,
                                                    exists=True),
-                        ("CREATE TABLE IF NOT EXISTS foo (a integer, b text);",
+                        ("CREATE TABLE IF NOT EXISTS foo (a INTEGER, b TEXT);",
                         {}))
 
     def test__create_sql_query_drop_table(self):
@@ -135,7 +135,7 @@ class v1_Databases_sqlite(unittest.TestCase):
             Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
 
     def test_create_table(self):
-        self.db.create_table("hell", {"name": "text", "love": "integer"})
+        self.db.create_table("hell", {"name": str, "love": int})
         self.db.set_table("hell")
         self.db.insert({"name": "hola", "love": 2})
         self.assertEqual(self.db.select(filter={"name": "hola"}),

@@ -7,6 +7,8 @@ DELETE = "DELETE"
 CREATE_TABLE = "CREATE TABLE"
 DROP_TABLE = "DROP TABLE"
 
+PRIMARY = "PRIMARY"
+
 class Data(list): #not checked datatypes
     def __init__(self, data):
         if isinstance(data, dict):
