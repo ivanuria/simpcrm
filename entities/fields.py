@@ -14,13 +14,16 @@ class Field:
     def definition(self):
         return self._definition
 
-class Fields:
+class Fields(dict):
     def __init__(self, table, fields):
-        self._table = table
+        super().__init__(self)
         if isinstance(fields, dict):
             self._fields = list(map(lambda x: Field(x, fields[x]), fields))
         elif isinstance(fields, list) and all([isinstance(field, Field) for field in fields]):
             self._fields = Fields
+        for field in self._fields:
+            self[field.name] = field
+        self._table = table
 
     @property
     def table(self):
@@ -29,3 +32,6 @@ class Fields:
     @property
     def fields(self):
         return self._fields
+
+    def __getitem__(self, key):
+        return super().__getitem__(key).definition
