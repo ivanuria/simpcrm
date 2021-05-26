@@ -96,7 +96,7 @@ class Entity:
         self.database.update(self, data, filter=filter, table=table)
 
     def set_child(self, entity):
-        assert isinstance(entity, Entity):
+        assert isinstance(entity, Entity)
         if entity not in self.children:
             self._children.append(entity)
 
