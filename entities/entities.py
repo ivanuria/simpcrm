@@ -88,7 +88,7 @@ def Entity:
             if "__fields" in Entity.persist:
                 for field in self.fields:
                     Entity.persist["__fields"].insert({"name": field.name,
-                                                       "definition": field.definition,
+                                                       "definition": str(field.definition),
                                                        "description": field.description,
                                                        "table": self.table})
 

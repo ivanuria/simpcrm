@@ -36,7 +36,7 @@ def persistent(database):
 def get_entity(database, table, ent=None):
     entity, fields_entity = persistent(database)
     flst = fields_entity.get({"table": table})
-    fields = Fields([Field(item["name"], item["definition"], description=item["description"]) for item in flst])
+    fields = Fields([Field(item["name"], eval(item["definition"]), description=item["description"]) for item in flst])
     if ent is None:
         ent = entity.get({"table": table})[0]
     return Entity(ent["name"], ent["table"], fields, ent["description"], database, parent=ent["parent"], parent_field=ent["parent_field"])
@@ -48,6 +48,7 @@ def get_entities(database):
     for ent in entities_list:
         final[ent["name"]] = get_entity(database, ent["table"], ent=ent)
     return final
+
 def install_persistency(database):
     entity, fields_entity = persistent(database)
     entity.install()
