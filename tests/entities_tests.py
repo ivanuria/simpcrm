@@ -13,19 +13,20 @@ from sqlite3 import Error
 
 class v1_Fields(unittest.TestCase):
     def setUp(self):
-        pass
+        self.db = SQLite(server=MEMORY)
+        self.db.connect()
 
     def tearDown(self):
-        pass
+        self.db.disconnect()
 
     def test_Field(self):
-        field = Field("foo", "bar", description="testing")
+        field = Field(self.db, "ninini", "foo", "bar", description="testing")
         self.assertEqual (field.name, "foo")
         self.assertEqual (field.definition, "bar")
         self.assertEqual (field.description, "testing")
 
     def test_Fields(self):
-        fields = Fields("ninini", {"foo": str, "bar": int})
+        fields = Fields(self.db, "ninini", {"foo": str, "bar": int})
         self.assertEqual(fields.table,"ninini")
         self.assertEqual(fields.fields, list(map(lambda x: Field(x, fields[x]), fields)))
         self.assertEqual(fields.fields[0].name, "foo")
