@@ -2,7 +2,7 @@
 
 from .fields import Field, Fields
 from .entities import Entity
-from ..databases.database import DBInterface, PRIMARY
+from databases.databases import DBInterface, PRIMARY
 
 def persistent(database):
     assert isinstance(database, DBInterface)

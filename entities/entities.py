@@ -1,7 +1,7 @@
 # Entities files
 
-from ..databases.database import DBInterface
-from ..databases.sqlite import SqliteInterface
+from databases.databases import DBInterface
+from databases.sqlite import SqliteInterface
 from collections import defaultdict
 
 
