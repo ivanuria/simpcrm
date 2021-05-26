@@ -7,7 +7,7 @@ from ..databases.database import DBInterface, PRIMARY
 def persistent(database):
     assert isinstance(database, DBInterface)
     ent_fields = Fields("__entities",
-                    {"name": [str, PRIMARY]],
+                    {"name": [str, PRIMARY],
                      "table": str,
                      "description": str,
                      "parent": str,
