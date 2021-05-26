@@ -1,14 +1,22 @@
 # Fields definitions
 from collections import defaultdict
 
-
 class Field:
-    persistent = defaultdict(dict)
-    def __init__(self, table, name, definition, description=""):
+    persistent = defaultdict(lambda: defaultdict(dict))
+    def __new__(cls, database, table, name, definition, description):
+        if (database in cls.persistent and
+            table in cls.persistent[database] and
+            name in cls.persistent[database][table]):
+            return cls.persistent[database][table][name]
+        else:
+            return super().__new__(cls)
+
+    def __init__(self, database, table, name, definition, description=""):
         self._name = name
         self._definition = definition
         self.description = description
         self._table = table
+        self.persistent[database][table][name] = self
 
     @property
     def name(self):
@@ -23,7 +31,7 @@ class Field:
         return self._table
 
 class Fields(dict):
-    def __init__(self, table, fields):
+    def __init__(self, database, table, fields):
         super().__init__(self)
         if isinstance(fields, dict):
             self._fields = list(map(lambda x: Field(table, x, fields[x]), fields))
