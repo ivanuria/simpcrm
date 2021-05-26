@@ -35,13 +35,17 @@ class SqliteInterface(DBInterface):
                 filter[key] = ["=", filter[key]]
             elif isinstance(filter[key], (list, tuple)) and len(filter[key]) == 2:
                 if (isinstance(filter[key][0], str) and
-                    filter[key][0].upper() not in ("=", "!=", "<=", ">=", "<", ">", "LIKE")):
-                    filter[key][0] = filter[key][0].upper()
-        string = " and ".join([key+filter[key][0]+":filter"+key+"value" for key in filter])
+                    filter[key][0].upper() in ("=", "!=", "<=", ">=", "<", ">", "LIKE")):
+                    if filter[key][0].upper() == "LIKE":
+                        filter[key][0] = " LIKE "
+                else:
+                    raise Exception("Operation not allowed (yet)")
+        keys = list(filter.keys())
+        string = " and ".join([key+filter[key][0]+":filter"+key+"value"+str(i) for i, key in enumerate(keys)])
         string = "WHERE {}".format(string)
         safe = {}
-        for key in filter:
-            safe["filter"+key+"value"] = filter[key][1]
+        for i,key in enumerate(keys):
+            safe["filter"+key+"value"+str(i)] = filter[key][1]
         return string, safe
 
     @classmethod

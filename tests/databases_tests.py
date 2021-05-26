@@ -24,12 +24,29 @@ class v1_Databases_sqlite(unittest.TestCase):
     def tearDown(self):
         self.db.disconnect()
 
-    def test__create_filter_query(self):
+    def test__create_filter_query_default(self):
         self.assertEqual(SQLite._create_filter_query({}), ("", {}))
         self.assertEqual(SQLite._create_filter_query({"name": "María", "age": 26}),
-                        ("WHERE name=:filternamevalue and age=:filteragevalue",
-                        {"filternamevalue": "María",
-                         "filteragevalue": 26}))
+                        ("WHERE name=:filternamevalue0 and age=:filteragevalue1",
+                        {"filternamevalue0": "María",
+                         "filteragevalue1": 26}))
+
+    def test__create_filter_query(self):
+        self.assertEqual(SQLite._create_filter_query({"name": ["=", "María"],
+                                                      "age": ["!=", 26],
+                                                      "channels": ["<", 4],
+                                                      "inputs": [">", 4],
+                                                      "outputs": [">=", 8],
+                                                      "volume": ["<=", 16],
+                                                      "gain": ["like", None]}),
+                        ("WHERE name=:filternamevalue0 and age!=:filteragevalue1 and channels<:filterchannelsvalue2 and inputs>:filterinputsvalue3 and outputs>=:filteroutputsvalue4 and volume<=:filtervolumevalue5 and gain LIKE :filtergainvalue6",
+                        {"filternamevalue0": "María",
+                         "filteragevalue1": 26,
+                         "filterchannelsvalue2": 4,
+                         "filterinputsvalue3": 4,
+                         "filteroutputsvalue4": 8,
+                         "filtervolumevalue5": 16,
+                         "filtergainvalue6": None}))
 
     def test__create_fields_pairing(self):
         self.assertEqual(SQLite._create_fields_pairing(["name", "age"], [str, int]),
@@ -50,8 +67,8 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.assertEqual(self.db._create_sql_query(table="foo",
                                                    fields=["a", "b"],
                                                    filter={"a": 1, "b": "dos"}),
-                        ("SELECT a, b FROM foo WHERE a=:filteravalue and b=:filterbvalue;",
-                        {"filteravalue": 1, "filterbvalue": "dos"}))
+                        ("SELECT a, b FROM foo WHERE a=:filteravalue0 and b=:filterbvalue1;",
+                        {"filteravalue0": 1, "filterbvalue1": "dos"}))
 
     def test__create_sql_query_insert(self):
         self.assertEqual(self.db._create_sql_query(table="foo",
@@ -67,15 +84,15 @@ class v1_Databases_sqlite(unittest.TestCase):
                                                    data=[1, "dos"],
                                                    filter={"a": 1, "b": "dos"},
                                                    method=UPDATE),
-                        ("UPDATE foo SET a=:avalue, b=:bvalue WHERE a=:filteravalue and b=:filterbvalue;",
-                        {"avalue": 1, "bvalue": "dos", "filteravalue": 1, "filterbvalue": "dos"}))
+                        ("UPDATE foo SET a=:avalue, b=:bvalue WHERE a=:filteravalue0 and b=:filterbvalue1;",
+                        {"avalue": 1, "bvalue": "dos", "filteravalue0": 1, "filterbvalue1": "dos"}))
 
     def test__create_sql_query_delete(self):
         self.assertEqual(self.db._create_sql_query(table="foo",
                                                    filter={"a": 1, "b": "dos"},
                                                    method=DELETE),
-                        ("DELETE from foo WHERE a=:filteravalue and b=:filterbvalue;",
-                        {"filteravalue": 1, "filterbvalue": "dos"}))
+                        ("DELETE from foo WHERE a=:filteravalue0 and b=:filterbvalue1;",
+                        {"filteravalue0": 1, "filterbvalue1": "dos"}))
 
     def test__create_sql_query_create_table(self):
         self.assertEqual(self.db._create_sql_query(table="foo",
