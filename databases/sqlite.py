@@ -30,11 +30,18 @@ class SqliteInterface(DBInterface):
         assert isinstance(filter, dict)
         if not filter:
             return "", {}
-        string = " and ".join([key+" = :filter"+key+"value" for key in filter])
+        for key in filter.keys():
+            if not isinstance(filter[key], (list, tuple)) or len(filter[key]) != 2:
+                filter[key] = ["=", filter[key]]
+            elif isinstance(filter[key], (list, tuple)) and len(filter[key]) == 2:
+                if (isinstance(filter[key][0], str) and
+                    filter[key][0].upper() not in ("=", "!=", "<=", ">=", "<", ">", "LIKE")):
+                    filter[key][0] = filter[key][0].upper()
+        string = " and ".join([key+filter[key][0]+":filter"+key+"value" for key in filter])
         string = "WHERE {}".format(string)
         safe = {}
         for key in filter:
-            safe["filter"+key+"value"] = filter[key]
+            safe["filter"+key+"value"] = filter[key][1]
         return string, safe
 
     @classmethod

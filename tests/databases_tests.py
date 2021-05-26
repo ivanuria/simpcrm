@@ -27,7 +27,7 @@ class v1_Databases_sqlite(unittest.TestCase):
     def test__create_filter_query(self):
         self.assertEqual(SQLite._create_filter_query({}), ("", {}))
         self.assertEqual(SQLite._create_filter_query({"name": "María", "age": 26}),
-                        ("WHERE name = :filternamevalue and age = :filteragevalue",
+                        ("WHERE name=:filternamevalue and age=:filteragevalue",
                         {"filternamevalue": "María",
                          "filteragevalue": 26}))
 
@@ -50,7 +50,7 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.assertEqual(self.db._create_sql_query(table="foo",
                                                    fields=["a", "b"],
                                                    filter={"a": 1, "b": "dos"}),
-                        ("SELECT a, b FROM foo WHERE a = :filteravalue and b = :filterbvalue;",
+                        ("SELECT a, b FROM foo WHERE a=:filteravalue and b=:filterbvalue;",
                         {"filteravalue": 1, "filterbvalue": "dos"}))
 
     def test__create_sql_query_insert(self):
@@ -67,14 +67,14 @@ class v1_Databases_sqlite(unittest.TestCase):
                                                    data=[1, "dos"],
                                                    filter={"a": 1, "b": "dos"},
                                                    method=UPDATE),
-                        ("UPDATE foo SET a=:avalue, b=:bvalue WHERE a = :filteravalue and b = :filterbvalue;",
+                        ("UPDATE foo SET a=:avalue, b=:bvalue WHERE a=:filteravalue and b=:filterbvalue;",
                         {"avalue": 1, "bvalue": "dos", "filteravalue": 1, "filterbvalue": "dos"}))
 
     def test__create_sql_query_delete(self):
         self.assertEqual(self.db._create_sql_query(table="foo",
                                                    filter={"a": 1, "b": "dos"},
                                                    method=DELETE),
-                        ("DELETE from foo WHERE a = :filteravalue and b = :filterbvalue;",
+                        ("DELETE from foo WHERE a=:filteravalue and b=:filterbvalue;",
                         {"filteravalue": 1, "filterbvalue": "dos"}))
 
     def test__create_sql_query_create_table(self):
