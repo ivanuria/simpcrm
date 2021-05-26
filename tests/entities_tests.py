@@ -20,17 +20,17 @@ class v1_Fields(unittest.TestCase):
 
     def test_Field(self):
         field = Field("foo", "bar", description="testing")
-        assertEqual (field.name, "foo")
-        assertEqual (field.definition, "bar")
-        assertEqual (field.description, "testing")
+        self.assertEqual (field.name, "foo")
+        self.assertEqual (field.definition, "bar")
+        self.assertEqual (field.description, "testing")
 
     def test_Fields(self):
         fields = Fields("ninini", {"foo": str, "bar": int})
-        assertEqual(fields.table,"ninini")
-        assertEqual(fields.fields, fields)
-        assertEqual(fields.fields[0].name, "foo")
-        assertEqual(fields.fields[1].name, "bar")
-        assertEqual(fields.fields[0].desfinition, str)
-        assertEqual(fields.fields[1].desfinition, int)
-        assertEqual(fields.fields[0].description, "")
-        assertEqual(fields.fields[1].description, "")
+        self.assertEqual(fields.table,"ninini")
+        self.assertEqual(fields.fields, fields)
+        self.assertEqual(fields.fields[0].name, "foo")
+        self.assertEqual(fields.fields[1].name, "bar")
+        self.assertEqual(fields.fields[0].desfinition, str)
+        self.assertEqual(fields.fields[1].desfinition, int)
+        self.assertEqual(fields.fields[0].description, "")
+        self.assertEqual(fields.fields[1].description, "")
