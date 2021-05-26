@@ -5,7 +5,7 @@ from ..databases.sqlite import SqliteInterface
 from collections import defaultdict
 
 
-def Entity:
+class Entity:
     persist = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
