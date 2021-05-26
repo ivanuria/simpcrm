@@ -27,7 +27,7 @@ class v1_Fields(unittest.TestCase):
     def test_Fields(self):
         fields = Fields("ninini", {"foo": str, "bar": int})
         self.assertEqual(fields.table,"ninini")
-        self.assertEqual(fields.fields, fields)
+        self.assertEqual(fields.fields, list(map(lambda x: Field(x, fields[x]), fields)))
         self.assertEqual(fields.fields[0].name, "foo")
         self.assertEqual(fields.fields[1].name, "bar")
         self.assertEqual(fields.fields[0].desfinition, str)
