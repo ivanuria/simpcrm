@@ -26,12 +26,13 @@ class v1_Fields(unittest.TestCase):
         self.assertEqual (field.description, "testing")
 
     def test_Fields(self):
+        fields_def = {"foo": str, "bar": int}
         fields = Fields(self.db, "ninini", {"foo": str, "bar": int})
         self.assertEqual(fields.table,"ninini")
-        self.assertEqual(fields.fields, list(map(lambda x: Field(x, fields[x]), fields)))
-        self.assertEqual(fields.fields[0].name, "foo")
-        self.assertEqual(fields.fields[1].name, "bar")
-        self.assertEqual(fields.fields[0].desfinition, str)
-        self.assertEqual(fields.fields[1].desfinition, int)
-        self.assertEqual(fields.fields[0].description, "")
-        self.assertEqual(fields.fields[1].description, "")
+        self.assertEqual(fields.fields, dict(map(lambda x: (x, Field(self.db, "ninini", x, fields[x])), fields_def)))
+        self.assertEqual(fields.fields["foo"].name, "foo")
+        self.assertEqual(fields.fields["bar"].name, "bar")
+        self.assertEqual(fields.fields["foo"].definition, str)
+        self.assertEqual(fields.fields["bar"].definition, int)
+        self.assertEqual(fields.fields["foo"].description, "")
+        self.assertEqual(fields.fields["bar"].description, "")
