@@ -9,7 +9,7 @@ class Entity:
     persist = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
-    def __new__(cls, name, table, fields, description, database, parent=None, parent_field="", installed=False):
+    def __new__(cls, database, table, name, fields, description, parent=None, parent_field="", installed=False):
         if table in cls.persist[database]:
             self = cls.persist[database][table]
             if any(name!=self.name,

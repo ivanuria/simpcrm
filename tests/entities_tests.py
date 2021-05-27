@@ -36,3 +36,10 @@ class v1_Fields(unittest.TestCase):
         self.assertEqual(fields["bar"].definition, int)
         self.assertEqual(fields["foo"].description, "")
         self.assertEqual(fields["bar"].description, "")
+
+class v1_Entities_SetUp(unittest.TestCase):
+    def setUp(self):
+        self.db = SQLite(server=MEMORY)
+        self.db.connect()
+
+    def 

@@ -39,7 +39,7 @@ def get_entity(database, table, ent=None):
     fields = Fields([Field(item["name"], eval(item["definition"]), description=item["description"], installed=True) for item in flst])
     if ent is None:
         ent = entity.get({"table": table})[0]
-    return Entity(ent["name"], ent["table"], fields, ent["description"], database, parent=ent["parent"], parent_field=ent["parent_field"], installed=True)
+    return Entity(database, ent["table"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"], installed=True)
 
 def get_entities(database):
     entity, fields_entity = persistent(database)
