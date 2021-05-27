@@ -3,15 +3,16 @@
 from databases.databases import DBInterface
 from databases.sqlite import SqliteInterface
 from collections import defaultdict
+from .fields import Field, Fields
 
 
 class Entity:
-    persist = defaultdict(dict)
+    persistent = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
     def __new__(cls, database, table, name, fields, description, parent=None, parent_field="", installed=False):
-        if table in cls.persist[database]:
-            self = cls.persist[database][table]
+        if table in cls.persistent[database]:
+            self = cls.persistent[database][table]
             if any(name!=self.name,
                    fields!=self.fields_orig,
                    parent!=self.parent,
@@ -24,8 +25,8 @@ class Entity:
 
     def __init__(self, database, table, name, fields, description, parent=None, parent_field="", installed=False):
         assert isinstance(database, DBInterface)
-        assert table not in Entity[database]
-        Entity.persist[database][table] = self
+        assert table not in self.persistent[database]
+        self.persistent[database][table] = self
         self._name = name
         self._table = table
         self.description = description
@@ -33,7 +34,8 @@ class Entity:
         self._fields = Fields(database, table, fields, installed=installed)
         self._database = database
         self._parent = parent
-        parent.set_child(self)
+        if isinstance(parent, Entity):
+            parent.set_child(self)
         self._parent_field = parent_field
         self._children = []
 
@@ -79,15 +81,15 @@ class Entity:
     def install(self):
         self.database.create_table(self.table, self.fields, exists=True)
         if self.table not in ("__entities", "__fields"):
-            if "__entities" in Entity.persist:
-                Entity.persist["__entities"].insert({"name": self.name,
+            if "__entities" in Entity.persistent:
+                Entity.persistent["__entities"].insert({"name": self.name,
                                                      "table": self.table,
                                                      "description": self.description,
                                                      "parent": self.parent.table,
                                                      "parent_field": self.parent_field})
-            if "__fields" in Entity.persist:
+            if "__fields" in Entity.persistent:
                 for field in self.fields:
-                    Entity.persist["__fields"].insert({"name": field.name,
+                    Entity.persistent["__fields"].insert({"name": field.name,
                                                        "definition": str(field.definition),
                                                        "description": field.description,
                                                        "table": self.table})
