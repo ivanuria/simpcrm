@@ -169,16 +169,17 @@ class SqliteInterface(DBInterface):
         self._conn.close()
 
     # Tables operations
-    def create_table(self, table, fields={}):
+    def create_table(self, table, fields={}, exists=True):
         assert fields # Thay must not be void
         if isinstance (fields, dict):
             data = fields.values()
             fields = fields.keys()
         kwargs = self.sql_dict
         kwargs.update(method=CREATE_TABLE,
-                                table=table,
-                                fields=fields,
-                                data=data)
+                      table=table,
+                      fields=fields,
+                      data=data,
+                      exists=exists)
         sql, safe = self._create_sql_query(**kwargs)
         self.cursor.execute(sql, safe)
         self._conn.commit()
