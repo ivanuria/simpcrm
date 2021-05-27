@@ -22,7 +22,7 @@ class Entity:
         else:
             return super().__new__(cls)
 
-    def __init__(self, name, table, fields, description, database, parent=None, parent_field="", installed=False):
+    def __init__(self, database, table, name, fields, description, parent=None, parent_field="", installed=False):
         assert isinstance(database, DBInterface)
         assert table not in Entity[database]
         Entity.persist[database][table] = self
