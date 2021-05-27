@@ -156,10 +156,10 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.db.set_table("hell")
         self.db.insert({"name": "hola", "love": 2})
         self.assertEqual(self.db.select(filter={"name": "hola"}),
-                        Data({"name": "hola", "love": 2}))
+                        Data({"id": 1, "name": "hola", "love": 2}))
         self.db.create_table("hell", {"name": str, "love": int}, exists=True)
         self.assertEqual(self.db.select(filter={"name": "hola"}),
-                        Data({"name": "hola", "love": 2}))
+                        Data({"id": 1, "name": "hola", "love": 2}))
 
     def test_drop_table(self):
         self.db.drop_table("hell")

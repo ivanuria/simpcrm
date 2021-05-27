@@ -172,8 +172,18 @@ class SqliteInterface(DBInterface):
     def create_table(self, table, fields={}, exists=True):
         assert fields # Thay must not be void
         if isinstance (fields, dict):
-            data = fields.values()
-            fields = fields.keys()
+            data = list(fields.values())
+            fields = list(fields.keys())
+        if not any([PRIMARY in item for item in data if isinstance(item, (list, tuple))]):
+            if not any("id" in item.lower() for item in fields):
+                data = [(int, PRIMARY)] + data
+                fields = ["id"] + fields
+            else:
+                index = fields.index("id")
+                if isinstance(data, (list, tuple)):
+                    data[index] = list(data[index]) + [PRIMARY]
+                else:
+                    data[index] = (data[index], PRIMARY)
         kwargs = self.sql_dict
         kwargs.update(method=CREATE_TABLE,
                       table=table,
@@ -181,6 +191,7 @@ class SqliteInterface(DBInterface):
                       data=data,
                       exists=exists)
         sql, safe = self._create_sql_query(**kwargs)
+        print(sql)
         self.cursor.execute(sql, safe)
         self._conn.commit()
 
