@@ -10,28 +10,35 @@ class Entity:
     persistent = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
-    def __new__(cls, database, table, name, fields, description, parent=None, parent_field="", installed=False):
+    def __new__(cls, database, table, name, fields, description, parent="", parent_field="", installed=False):
         if table in cls.persistent[database]:
             self = cls.persistent[database][table]
-            if any(name!=self.name,
-                   fields!=self.fields_orig,
+            if any([name!=self.name,
+                   isinstance(fields, Fields) and fields!=self.fields,
+                   not isinstance(fields, Fields) and fields!=dict(zip(self.fields.keys(), self.fields.values())),
                    parent!=self.parent,
-                   parent_field!=self.parent_field):
+                   parent_field!=self.parent_field]):
+                print(name)
+                print(fields)
+                print(self.fields)
+                print(parent, self.parent)
                 raise Exception("Entity already defined")
             else:
                 return self
         else:
             return super().__new__(cls)
 
-    def __init__(self, database, table, name, fields, description, parent=None, parent_field="", installed=False):
+    def __init__(self, database, table, name, fields, description, parent="", parent_field="", installed=False):
         assert isinstance(database, DBInterface)
-        assert table not in self.persistent[database]
+        assert isinstance(fields, dict)
         self.persistent[database][table] = self
         self._name = name
         self._table = table
         self.description = description
-        self._fields_orig = fields
-        self._fields = Fields(database, table, fields, installed=installed)
+        if isinstance(fields, Fields):
+            self._fields = fields
+        else:
+            self._fields = Fields(database, table, fields, installed=installed)
         self._database = database
         self._parent = parent
         if isinstance(parent, Entity):
@@ -81,18 +88,18 @@ class Entity:
     def install(self):
         self.database.create_table(self.table, self.fields, exists=True)
         if self.table not in ("__entities", "__fields"):
-            if "__entities" in Entity.persistent:
-                Entity.persistent["__entities"].insert({"name": self.name,
-                                                     "table": self.table,
-                                                     "description": self.description,
-                                                     "parent": self.parent.table,
-                                                     "parent_field": self.parent_field})
-            if "__fields" in Entity.persistent:
+            if "__entities" in Entity.persistent[self.database]:
+                Entity.persistent[self.database]["__entities"].insert({"name": self.name,
+                                                                       "table_name": self.table,
+                                                                       "description": self.description,
+                                                                       "parent": self.parent and self.parent.table or "",
+                                                                       "parent_field": self.parent_field})
+            if "__fields" in Entity.persistent[self.database]:
                 for field in self.fields:
-                    Entity.persistent["__fields"].insert({"name": field.name,
-                                                       "definition": str(field.definition),
-                                                       "description": field.description,
-                                                       "table": self.table})
+                    Entity.persistent[self.database]["__fields"].insert({"name": self.fields[field].name,
+                                                                         "definition": self.fields[field].definition.__name__,
+                                                                         "description": self.fields[field].description,
+                                                                         "table_name": self.table})
 
     def replace(self, filter, data):
         self.database.update(data, filter=filter, table=self.table)

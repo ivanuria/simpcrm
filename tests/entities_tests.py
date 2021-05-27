@@ -52,7 +52,7 @@ class v1_Entity_setup(unittest.TestCase):
         self.assertEqual(self.entity.table, "ninini")
         self.assertEqual(self.entity.database, self.db)
         self.assertEqual(self.entity.fields, Fields(self.db, "ninini", {"foo": str, "bar": int}))
-        self.assertEqual(self.entity.parent, None)
+        self.assertEqual(self.entity.parent, "")
         self.assertEqual(self.entity.parent_field, "")
 
     def test_Entity_insert_get(self):
@@ -75,6 +75,7 @@ class v1_Entity_setup(unittest.TestCase):
         self.entity.delete({"id": 2})
         self.assertEqual(self.entity.get({}), [{"id":1, "foo": "Hola", "bar": 10}])
 
+
 class v1_defaults(unittest.TestCase):
     def setUp(self):
         self.db = SQLite(server=MEMORY)
@@ -87,6 +88,16 @@ class v1_defaults(unittest.TestCase):
 
     def tearDown(self):
         self.db.disconnect()
+
+    def test_Entity_persistency(self):
+        self.assertTrue("__entities" in Entity.persistent[self.db])
+        self.assertTrue("__fields" in Entity.persistent[self.db])
+
+    def test_instalation(self):
+        c = self.db.cursor
+        c.execute("select name, table_name, description from __entities where table_name=:n", {"n":"ninini"})
+        a = c.fetchone()
+        self.assertEqual(a, {"name": "ninini", "table_name": "ninini", "description": "Test entity"})
 
     def test_get_entity(self):
         entity = get_entity(self.db, "ninini")
