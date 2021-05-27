@@ -191,7 +191,6 @@ class SqliteInterface(DBInterface):
                       data=data,
                       exists=exists)
         sql, safe = self._create_sql_query(**kwargs)
-        print(sql)
         self.cursor.execute(sql, safe)
         self._conn.commit()
 
@@ -225,8 +224,8 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self._conn.commit()
 
-    def update(self, data, **kwargs):
-        filter, database, table, fields, values = super().update(data, **kwargs)
+    def update(self, data, filter=None, database=None, table=None):
+        filter, database, table, fields, values = super().update(data, filter=filter, database=database, table=table)
         sql, safe = self._create_sql_query(method=UPDATE,
                                             table=table,
                                             fields=fields,

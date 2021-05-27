@@ -95,7 +95,7 @@ class Entity:
                                                        "table": self.table})
 
     def replace(self, filter, data):
-        self.database.update(self, data, filter=filter, table=table)
+        self.database.update(data, filter=filter, table=self.table)
 
     def set_child(self, entity):
         assert isinstance(entity, Entity)

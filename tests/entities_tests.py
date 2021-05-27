@@ -55,9 +55,16 @@ class v1_Entity_setup(unittest.TestCase):
         self.assertEqual(self.entity.parent, None)
         self.assertEqual(self.entity.parent_field, "")
 
-    def test_entity_insert_get(self):
+    def test_Entity_insert_get(self):
         self.entity.install()
         self.entity.insert({"foo": "Hola", "bar": 10})
         self.entity.insert({"foo": "Adios", "bar": 12})
         self.assertEqual(self.entity.get({"foo": "Hola"}), [{"id":1, "foo": "Hola", "bar": 10}])
         self.assertEqual(self.entity.get({"foo": "Adios"}), [{"id":2, "foo": "Adios", "bar": 12}])
+
+    def test_Entity_replace(self):
+        self.entity.insert({"foo": "Hola", "bar": 10})
+        self.entity.insert({"foo": "Adios", "bar": 12})
+        self.entity.replace({"id": 2}, {"bar": 15})
+        self.assertEqual(self.entity.get({"foo": "Hola"}), [{"id":1, "foo": "Hola", "bar": 10}])
+        self.assertEqual(self.entity.get({"foo": "Adios"}), [{"id":2, "foo": "Adios", "bar": 15}])
