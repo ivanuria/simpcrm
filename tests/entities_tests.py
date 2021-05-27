@@ -37,9 +37,27 @@ class v1_Fields(unittest.TestCase):
         self.assertEqual(fields["foo"].description, "")
         self.assertEqual(fields["bar"].description, "")
 
-class v1_Entities_SetUp(unittest.TestCase):
+class v1_Entity_setup(unittest.TestCase):
     def setUp(self):
         self.db = SQLite(server=MEMORY)
         self.db.connect()
+        self.entity = Entity(self.db, "ninini", "ninini", {"foo": str, "bar": int}, "Test entity")
+        self.entity.install()
 
-    def 
+    def tearDown(self):
+        self.db.disconnect()
+
+    def test_Entity_definition(self):
+        self.assertEqual(self.entity.name, "ninini")
+        self.assertEqual(self.entity.table, "ninini")
+        self.assertEqual(self.entity.database, self.db)
+        self.assertEqual(self.entity.fields, Fields(self.db, "ninini", {"foo": str, "bar": int}))
+        self.assertEqual(self.entity.parent, None)
+        self.assertEqual(self.entity.parent_field, "")
+
+    def test_entity_insert_get(self):
+        self.entity.install()
+        self.entity.insert({"foo": "Hola", "bar": 10})
+        self.entity.insert({"foo": "Adios", "bar": 12})
+        self.assertEqual(self.entity.get({"foo": "Hola"}), [{"id":1, "foo": "Hola", "bar": 10}])
+        self.assertEqual(self.entity.get({"foo": "Adios"}), [{"id":2, "foo": "Adios", "bar": 12}])
