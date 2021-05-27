@@ -68,3 +68,9 @@ class v1_Entity_setup(unittest.TestCase):
         self.entity.replace({"id": 2}, {"bar": 15})
         self.assertEqual(self.entity.get({"foo": "Hola"}), [{"id":1, "foo": "Hola", "bar": 10}])
         self.assertEqual(self.entity.get({"foo": "Adios"}), [{"id":2, "foo": "Adios", "bar": 15}])
+
+    def test_Entity_delete(self):
+        self.entity.insert({"foo": "Hola", "bar": 10})
+        self.entity.insert({"foo": "Adios", "bar": 12})
+        self.entity.delete({"id": 2})
+        self.assertEqual(self.entity.get({}), [{"id":1, "foo": "Hola", "bar": 10}])

@@ -70,7 +70,7 @@ class Entity:
 
     #Methods
     def delete(self, filter):
-        self.database.delete(filter=filter, table=table)
+        self.database.delete(filter=filter, table=self.table)
 
     def get(self, filter):
         return self.database.select(filter=filter, table=self.table)
