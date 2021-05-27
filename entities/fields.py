@@ -2,15 +2,17 @@
 from collections import defaultdict
 
 class Field:
-    persistent = defaultdict(lambda: defaultdict(dict)) #TODO save directly as Fields
+    #persistent = defaultdict(lambda: defaultdict(dict)) #Moved to Fields
     def __new__(cls, database, table, name, definition, description=""):
-        if (database in cls.persistent and
-            table in cls.persistent[database] and
-            name in cls.persistent[database][table]):
-            if cls.persistent[database][table][name].definition == definition:
-                return cls.persistent[database][table][name]
+        if not table in Fields.persistent[database]:
+            Fields(database, table, name, {})
+        if (database in Fields.persistent and
+            table in Fields.persistent[database] and
+            name in Fields.persistent[database][table]):
+            if Fields.persistent[database][table][name].definition == definition:
+                return Fields.persistent[database][table][name]
             else:
-                raise Exception ("field previously instantiated")
+                raise Exception ("field {} previously instantiated: {} Vs {}".format(name, definition, Fields.persistent[database][table][name].definition))
         else:
             return super().__new__(cls)
 
@@ -19,7 +21,7 @@ class Field:
         self._definition = definition
         self.description = description
         self._table = table
-        self.persistent[database][table][name] = self
+        Fields.persistent[database][table][name] = self
 
     @property
     def name(self):
@@ -35,25 +37,20 @@ class Field:
 
 class Fields(dict):
     persistent = defaultdict(dict)
-    def __new__(cls, database, table, fields):
+    def __new__(cls, database, table, fields, installed=False):
         if database in cls.persistent and table in cls.persistent[database]:
-            print("ALERT: fields will not be checked (yet)") #TODO
             return cls.persistent[database][table]
         else:
             return super().__new__(cls)
 
-    def __init__(self, database, table, fields):
+    def __init__(self, database, table, fields, installed=False):
         super().__init__(self)
+        self.persistent[database][table] = self
         self._table = table
         self._database = database
-        self._fields = Field.persistent[database][table] #Comes from Field instantation
-        if isinstance(fields, dict) and fields != self._fields:
+        self._installed = installed # To know whether or not alter table
+        if isinstance(fields, dict):
             list(map(lambda x: Field(database, table, x, fields[x]), fields))
-        """elif isinstance(fields, list) and all([isinstance(field, Field) for field in fields]):
-            self._fields = Fields
-        for field in self._fields:
-            self[field.name] = field
-        self._table = table"""#absurd now
 
     @property
     def table(self):
@@ -61,7 +58,7 @@ class Fields(dict):
 
     @property
     def fields(self):
-        return self._fields
+        return dict(self)
 
-    def __getitem__(self, key):
-        return self._fields[key].definition
+    def set_installed(self):
+        self._installed = True

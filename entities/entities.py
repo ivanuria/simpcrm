@@ -9,7 +9,7 @@ class Entity:
     persist = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
-    def __new__(cls, name, table, fields, description, database, parent=None, parent_field=""):
+    def __new__(cls, name, table, fields, description, database, parent=None, parent_field="", installed=False):
         if table in cls.persist[database]:
             self = cls.persist[database][table]
             if any(name!=self.name,
@@ -22,7 +22,7 @@ class Entity:
         else:
             return super().__new__(cls)
 
-    def __init__(self, name, table, fields, description, database, parent=None, parent_field=""):
+    def __init__(self, name, table, fields, description, database, parent=None, parent_field="", installed=False):
         assert isinstance(database, DBInterface)
         assert table not in Entity[database]
         Entity.persist[database][table] = self
@@ -30,7 +30,7 @@ class Entity:
         self._table = table
         self.description = description
         self._fields_orig = fields
-        self._fields = Fields(fields)
+        self._fields = Fields(database, table, fields, installed=installed)
         self._database = database
         self._parent = parent
         parent.set_child(self)
