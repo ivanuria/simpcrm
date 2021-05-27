@@ -60,5 +60,8 @@ class Fields(dict):
     def fields(self):
         return dict(self)
 
+    def values(self): #Let's override this
+        return [item.definition for item in super().values()]
+
     def set_installed(self):
         self._installed = True
