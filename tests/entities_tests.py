@@ -74,3 +74,20 @@ class v1_Entity_setup(unittest.TestCase):
         self.entity.insert({"foo": "Adios", "bar": 12})
         self.entity.delete({"id": 2})
         self.assertEqual(self.entity.get({}), [{"id":1, "foo": "Hola", "bar": 10}])
+
+class v1_defaults(unittest.TestCase):
+    def setUp(self):
+        self.db = SQLite(server=MEMORY)
+        self.db.connect()
+        install_persistency(self.db)
+        self.entity = Entity(self.db, "ninini", "ninini", {"foo": str, "bar": int}, "Test entity")
+        self.entity.install()
+        self.entity.insert({"foo": "Hola", "bar": 10})
+        self.entity.insert({"foo": "Adios", "bar": 12})
+
+    def tearDown(self):
+        self.db.disconnect()
+
+    def test_get_entity(self):
+        entity = get_entity(self.db, "ninini")
+        self.assertEqual(entity.get({"foo": "Hola"}), [{"id":1, "foo": "Hola", "bar": 10}])
