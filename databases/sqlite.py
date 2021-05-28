@@ -3,6 +3,8 @@
 import sqlite3
 from databases.databases import Data, DBInterface
 from databases.databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
+from databases.databases import ALTER_TABLE_ADD_COLUMN, ALTER_TABLE_DROP_COLUMN, ALTER_TABLE_RENAME_TABLE
+from databases.databases import ALTER_TABLE_MODIFY_COLUMN, ALTER_TABLE_RENAME_COLUMN
 from databases.databases import PRIMARY
 from collections import defaultdict
 
@@ -241,3 +243,45 @@ class SqliteInterface(DBInterface):
                                             filter=filter)
         self.cursor.execute(sql, safe)
         self._conn.commit()
+
+    #Table Alterations
+    def alter_table_rename_table(self, new_name, table=None):
+        """
+        Changes name of table
+        """
+        if table is None:
+            table = self.table
+        self.set_table(new_name)
+        return table, new_name
+
+    def alter_table_rename_column(self, column, new_name, table=None):
+        """
+        Changes name of column is specified table table
+        """
+        if table is None:
+            table = self.table
+        return table, column, new_name
+
+    def alter_table_add_column(self, column, column_type, table=None):
+        """
+        Adds new column in specified table table
+        """
+        if table is None:
+            table = self.table
+        return table, column, column_type
+
+    def alter_table_drop_column(self, column, table=None):
+        """
+        Adds new column in specified table table
+        """
+        if table is None:
+            table = self.table
+        return table, column
+
+    def alter_table_modify_column(self, column, column_type, table=None):
+        """
+        Changes data type for column in specified table table
+        """
+        if table is None:
+            table = self.table
+        return table, column, column_type
