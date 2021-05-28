@@ -277,9 +277,13 @@ class SqliteInterface(DBInterface):
         """
         Changes name of column is specified table table
         """
-        if table is None:
-            table = self.table
-        return table, column, new_name
+        table, column, new_name = super().alter_table_rename_column(column, new_name, table=table)
+        sql, safe = self._create_sql_query(method=ALTER_TABLE_RENAME_COLUMN,
+                                            table=table,
+                                            fields=[column],
+                                            data=[new_name])
+        self.cursor.execute(sql, safe)
+        self._conn.commit()
 
     def alter_table_add_column(self, column, column_type, table=None):
         """

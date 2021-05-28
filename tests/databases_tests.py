@@ -173,7 +173,7 @@ class v1_Databases_sqlite(unittest.TestCase):
             Data([{"id": 1, "name": "María", "age": 49, "phone": "+34666777888"}]))
 
     def test_alter_table_rename_column(self):
-        self.db.alter_table_rename_table( "phone", "contact", table="customers")
+        self.db.alter_table_rename_column("phone", "contact", table="customers")
         self.assertEqual(self.db.select(table="customers"),
             Data([{"id": 1, "name": "María", "age": 49, "contact": "+34666777888"}]))
 
