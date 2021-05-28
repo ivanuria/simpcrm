@@ -6,6 +6,7 @@ VERSION = 0.1
 import unittest
 from databases.sqlite import SqliteInterface as SQLite, MEMORY
 from databases.databases import Data, SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
+from databases.databases import PRIMARY
 from sqlite3 import Error
 
 class v1_Databases_sqlite(unittest.TestCase):
@@ -183,10 +184,19 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.assertEqual(self.db.select(table="customers"),
             Data([{"id": 1, "name": "María", "age": 49, "phone": "+34666777888", "mail": "maria@test.es"}]))
 
+    def test_get_schema(self):
+        self.assertEqual(dict(self.db.get_schema(table="customers")),
+                        {"id": [int, PRIMARY], "name": [str], "age": [int], "phone": [str]})
+
+    def test_create_table_as_another(self):
+        self.db.create_table_as_another("ninini", table="customers", fields=["id", "name", "age"])
+        self.assertEqual(self.db.select(table="ninini"),
+                         Data([{"id": 1, "name": "María", "age": 49}]))
+
     def test_alter_table_drop_column(self):
         self.db.alter_table_drop_column("phone", table="customers")
         self.assertEqual(self.db.select(table="customers"),
-            Data([{"id": 1, "name": "María", "age": 49}]))
+                         Data([{"id": 1, "name": "María", "age": 49}]))
 
     def test_alter_table_modify_column(self):
         self.db.alter_table_modify_column("age", str, table="customers")

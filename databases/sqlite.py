@@ -6,9 +6,13 @@ from databases.databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DR
 from databases.databases import ALTER_TABLE_ADD_COLUMN, ALTER_TABLE_DROP_COLUMN, ALTER_TABLE_RENAME_TABLE
 from databases.databases import ALTER_TABLE_MODIFY_COLUMN, ALTER_TABLE_RENAME_COLUMN, GET_SCHEMA
 from databases.databases import PRIMARY
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
+import re
 
 MEMORY = ":memory:"
+RE = re.compile(r"[a-zA-Z0-9 ]+")
+
+CREATE_TABLE_AS_ANOTHER = "CREATE TABLE AS ANOTHER"
 
 def dict_factory(cursor, row): # Stolen from documentation
     d = {}
@@ -125,12 +129,13 @@ class SqliteInterface(DBInterface):
                     UPDATE: "UPDATE {table} SET {pairing} {where};",
                     DELETE: "DELETE from {table} {where};",
                     CREATE_TABLE: "CREATE TABLE {exists} {table} ({pairing});",
+                    CREATE_TABLE_AS_ANOTHER: "CREATE TABLE {exists} {table}",
                     DROP_TABLE: "DROP TABLE IF EXISTS {table}",
                     ALTER_TABLE_ADD_COLUMN: "ALTER TABLE {table} ADD COLUMN {pairing};",
                     ALTER_TABLE_DROP_COLUMN: "ALTER TABLE {table} DROP COLUMN {column};",
                     ALTER_TABLE_RENAME_TABLE: "ALTER TABLE {table} RENAME TO {new_name};",
                     ALTER_TABLE_RENAME_COLUMN: "ALTER TABLE {table} RENAME COLUMN {column} TO {new_name};",
-                    GET_SCHEMA: "SELECT sql FROM sqlite_master WHERE name = :table";}
+                    GET_SCHEMA: "SELECT * FROM sqlite_master WHERE name = :table;"}
 
         if method == SELECT:
             if fields and (isinstance(fields, list) or isinstance(fields, tuple)):
@@ -176,7 +181,16 @@ class SqliteInterface(DBInterface):
             sql_string = template[method].format(table=table, new_name=data[0])
         elif method == ALTER_TABLE_RENAME_COLUMN:
             sql_string = template[method].format(table=table, column=fields[0], new_name=data[0])
-
+        elif method == GET_SCHEMA:
+            sql_string = template[method]
+            sql_safe_passing = {"table": table}
+        elif method == CREATE_TABLE_AS_ANOTHER:
+            if exists:
+                exists_str = "IF NOT EXISTS"
+            else:
+                exists_str = ""
+            sql_string = template[method].format(exists=exists_str,
+                                                 table=table)
         return sql_string, sql_safe_passing
     # Connection Methods
 
@@ -304,12 +318,13 @@ class SqliteInterface(DBInterface):
         """
         #Although defined in sqlite documentation, clause is not recognized. This will be a little tricky
         table, column = super().alter_table_drop_column(column, table=table)
-        sql, safe = self._create_sql_query(method=ALTER_TABLE_DROP_COLUMN,
-                                            table=table,
-                                            fields=[column])
-        print(sql)
-        self.cursor.execute(sql, safe)
-        self._conn.commit()
+        schema = self.get_schema(table=table)
+        del(schema[column])
+        temp_table = "_temp_"+table
+        self.create_table_as_another(temp_table, table=table, fields=list(schema.keys()))
+        self.drop_table(table=table)
+        self.alter_table_rename_table(table, table=temp_table)
+
 
     def alter_table_modify_column(self, column, column_type, table=None):
         """
@@ -321,4 +336,41 @@ class SqliteInterface(DBInterface):
 
     #Get SCHEMA
     def get_schema(self, table=None):
+        schema = {"primary key": PRIMARY,
+                  "text": str,
+                  "integer": int,
+                  "real": float,
+                  "blob": object,
+                  "null": None}
         table = super().get_schema(table=table)
+        sql, safe = self._create_sql_query(method=GET_SCHEMA,
+                                            table=table)
+        self.cursor.execute(sql, safe)
+        data = RE.findall(self.cursor.fetchone()["sql"])[2:]
+        data = OrderedDict([(item[0], " ".join(item[1:])) for item in [string.strip().split(" ") for string in data]])
+        returning = OrderedDict()
+        for key in data:
+            final = []
+            prim = []
+            if "primary key" in data[key]:
+                prim.append(PRIMARY)
+                data[key] = data[key].replace(" primary key", "").strip()
+            items = data[key].split(" ")
+            for item in items:
+                final.append(schema[item])
+            returning[key] = final+prim
+        return returning
+
+    def create_table_as_another(self, new_table, filter=None, database=None, table=None, fields=None, exists=True):
+        filter, database, table, fields = super().select(filter=filter, database=database, table=table, fields=fields)
+        sql, safe = self._create_sql_query(method=SELECT,
+                                           table=table,
+                                           fields=fields,
+                                           filter=filter)
+        sql_new, safe_new = self._create_sql_query(method=CREATE_TABLE_AS_ANOTHER,
+                                                   table=new_table,
+                                                   exists=exists)
+        sql = " AS ".join((sql_new, sql))
+        print(sql)
+        self.cursor.execute(sql, safe)
+        self._conn.commit()
