@@ -76,7 +76,7 @@ class v1_Entity_setup(unittest.TestCase):
         self.assertEqual(self.entity.get({}), [{"id":1, "foo": "Hola", "bar": 10}])
 
 
-class v1_defaults(unittest.TestCase):
+class v1_Entity_and_defaults(unittest.TestCase):
     def setUp(self):
         self.db = SQLite(server=MEMORY)
         self.db.connect()
@@ -102,3 +102,13 @@ class v1_defaults(unittest.TestCase):
     def test_get_entity(self):
         entity = get_entity(self.db, "ninini")
         self.assertEqual(entity.get({"foo": "Hola"}), [{"id":1, "foo": "Hola", "bar": 10}])
+        del(entity)
+        del(Entity.persistent[self.db]["ninini"])
+        entity = get_entity(self.db, "ninini")
+        self.assertEqual(entity.get({"foo": "Hola"}), [{"id":1, "foo": "Hola", "bar": 10}])
+
+    def test_new_field(self):
+        self.entity.fields["kitty"] = float
+        self.entity.replace({"id": 1}, {"kitty": 1.3})
+        self.assertEqual(self.entity.get({"id": 1}),
+                        [{"id": 1, "foo": "Hola", "bar": 10, "kitty": 1.3}])

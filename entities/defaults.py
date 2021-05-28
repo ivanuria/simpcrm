@@ -32,9 +32,12 @@ def persistent(database):
     return entity, fields_entity
 
 def get_entity(database, table, ent=None):
+    if database in Entity.persistent and table in Entity.persistent[database]:
+        return Entity.persistent[database][table]
     entity, fields_entity = persistent(database)
     flst = fields_entity.get({"table_name": table})
-    fields = Fields(database, table, [Field(database, table, item["name"], eval(item["definition"]), description=item["description"]) for item in flst], installed=True)
+    fields = Fields(database, table, [Field(database, table, item["name"], eval(item["definition"]), description=item["description"]) for item in flst])
+    fields.set_installed()
     if ent is None:
         ent = entity.get({"table_name": table})[0] #TODO: raise especial exception if not exists
     return Entity(database, ent["table_name"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"], installed=True)

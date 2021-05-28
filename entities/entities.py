@@ -38,13 +38,14 @@ class Entity:
         if isinstance(fields, Fields):
             self._fields = fields
         else:
-            self._fields = Fields(database, table, fields, installed=installed)
+            self._fields = Fields(database, table, fields)
         self._database = database
         self._parent = parent
         if isinstance(parent, Entity):
             parent.set_child(self)
         self._parent_field = parent_field
         self._children = []
+        self._installed = installed
 
     #Properties
     @property
@@ -100,6 +101,8 @@ class Entity:
                                                                          "definition": self.fields[field].definition.__name__,
                                                                          "description": self.fields[field].description,
                                                                          "table_name": self.table})
+        self._installed = True
+        self.fields.set_installed()
 
     def replace(self, filter, data):
         self.database.update(data, filter=filter, table=self.table)

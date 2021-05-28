@@ -5,11 +5,12 @@ class Field:
     #persistent = defaultdict(lambda: defaultdict(dict)) #Moved to Fields
     def __new__(cls, database, table, name, definition, description=""):
         if not table in Fields.persistent[database]:
-            Fields(database, table, name, {})
+            Fields(database, table, name)
         if (database in Fields.persistent and
             table in Fields.persistent[database] and
             name in Fields.persistent[database][table]):
             if Fields.persistent[database][table][name].definition == definition:
+                print(f"returning {table} {name}")
                 return Fields.persistent[database][table][name]
             else:
                 raise Exception ("field {} previously instantiated: {} Vs {}".format(name, definition, Fields.persistent[database][table][name].definition))
@@ -54,18 +55,19 @@ class Field:
 
 class Fields(dict):
     persistent = defaultdict(dict)
-    def __new__(cls, database, table, fields, installed=False):
+    def __new__(cls, database, table, fields):
         if database in cls.persistent and table in cls.persistent[database]:
             return cls.persistent[database][table]
         else:
             return super().__new__(cls)
 
-    def __init__(self, database, table, fields, installed=False):
+    def __init__(self, database, table, fields):
+
         super().__init__(self)
         self.persistent[database][table] = self
         self._table = table
         self._database = database
-        self._installed = installed # To know whether or not alter table
+        self._installed = False #To initialize without issues
         if isinstance(fields, dict):
             list(map(lambda x: Field(database, table, x, fields[x]), fields))
 
@@ -89,14 +91,14 @@ class Fields(dict):
     def __setitem__(self, key, value):
         if isinstance(value, Field):
             if self.installed is True:
-                if key in self:
+                if key in self and value.definition != self[key].definition:
                     self.database.alter_table_modify_column(value.name, value.definition, table=self.table)
-                else:
+                elif key not in self:
                     self.database.alter_table_add_column(value.name, value.definition, table=self.table)
             super().__setitem__(key, value)
         else:
             if isinstance(value, type):
-                Field(self.database, self.table, key, key, value)
+                Field(self.database, self.table, key, value)
             if isinstance(value, dict):
                 name = key
                 definition = str
