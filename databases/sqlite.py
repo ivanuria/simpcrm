@@ -289,9 +289,13 @@ class SqliteInterface(DBInterface):
         """
         Adds new column in specified table table
         """
-        if table is None:
-            table = self.table
-        return table, column, column_type
+        table, column, column_type = super().alter_table_add_column(column, column_type, table=table)
+        sql, safe = self._create_sql_query(method=ALTER_TABLE_ADD_COLUMN,
+                                            table=table,
+                                            fields=[column],
+                                            data=[column_type])
+        self.cursor.execute(sql, safe)
+        self._conn.commit()
 
     def alter_table_drop_column(self, column, table=None):
         """
