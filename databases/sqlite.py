@@ -347,13 +347,12 @@ class SqliteInterface(DBInterface):
         schema = self.get_schema(table=table)
         schema[column] = column_type
         temp_table = "_temp_"+table
-        self.create_table(temp_table, fields=list(schema.keys()), data=list(schema.keys()))
-        print(self.get_schema(table=temp_table))
+        self.create_table(temp_table, fields=list(schema.keys()), data=list(schema.values()))
         data = self.select(table=table)
         self.insert(data, table=temp_table)
         self.drop_table(table=table)
         self.alter_table_rename_table(table, table=temp_table)
-
+        
 
     #Get SCHEMA
     def get_schema(self, table=None):
@@ -370,6 +369,7 @@ class SqliteInterface(DBInterface):
         data = RE.findall(self.cursor.fetchone()["sql"])[2:]
         data = OrderedDict([(item[0], " ".join(item[1:])) for item in [string.strip().split(" ") for string in data]])
         returning = OrderedDict()
+
         for key in data:
             final = []
             prim = []
@@ -378,7 +378,9 @@ class SqliteInterface(DBInterface):
                 data[key] = data[key].replace(" primary key", "").strip()
             items = data[key].split(" ")
             for item in items:
-                final.append(schema[item])
+                item = item.lower()
+                if item in schema:
+                    final.append(schema[item])
             returning[key] = final+prim
         return returning
 
