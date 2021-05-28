@@ -132,6 +132,15 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.assertEqual(self.db.select(filter={"name": "José"}),
             Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
 
+    def test_insert_many(self):
+        self.db.set_table("customers")
+        self.db.insert(data=[{"name": "José", "age": 33, "phone": "+34777888999"},
+                             {"name": "Miguel", "age": 32, "phone": "+34777888999"}])
+        self.assertEqual(self.db.select(filter={"name": "José"}),
+            Data({"id": 2, "name": "José", "age": 33, "phone": "+34777888999"}))
+        self.assertEqual(self.db.select(filter={"name": "Miguel"}),
+            Data({"id": 3, "name": "Miguel", "age": 32, "phone": "+34777888999"}))
+
     def test_select_many(self):
         self.db.set_table("customers")
         self.db.insert(data={"name": "José", "age": 33, "phone": "+34777888999"})
@@ -189,19 +198,25 @@ class v1_Databases_sqlite(unittest.TestCase):
                         {"id": [int, PRIMARY], "name": [str], "age": [int], "phone": [str]})
 
     def test_create_table_as_another(self):
+        self.db.insert(data={"name": "José", "age": 33, "phone": "+34777888999"}, table="customers")
         self.db.create_table_as_another("ninini", table="customers", fields=["id", "name", "age"])
         self.assertEqual(self.db.select(table="ninini"),
-                         Data([{"id": 1, "name": "María", "age": 49}]))
+                         Data([{"id": 1, "name": "María", "age": 49},
+                                {"id": 2, "name": "José", "age": 33}]))
 
     def test_alter_table_drop_column(self):
+        self.db.insert(data={"name": "José", "age": 33, "phone": "+34777888999"}, table="customers")
         self.db.alter_table_drop_column("phone", table="customers")
         self.assertEqual(self.db.select(table="customers"),
-                         Data([{"id": 1, "name": "María", "age": 49}]))
+                         Data([{"id": 1, "name": "María", "age": 49},
+                                {"id": 2, "name": "José", "age": 33}]))
 
     def test_alter_table_modify_column(self):
+        self.db.insert(data={"name": "José", "age": 33, "phone": "+34777888999"}, table="customers")
         self.db.alter_table_modify_column("age", str, table="customers")
         self.assertEqual(self.db.select(table="customers"),
-            Data([{"id": 1, "name": "María", "age": "49", "contact": "+34666777888"}]))
+            Data([{"id": 1, "name": "María", "age": "49", "phone": "+34666777888"},
+                  {"id": 2, "name": "José", "age": "33", "phone": "+34777888999"}]))
 
 if __name__ == '__main__':
     unittest.main()

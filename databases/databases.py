@@ -167,12 +167,15 @@ class DBInterface:
         """
         inserts data in database and table
         """
-        assert isinstance(data, dict)
         if database is None:
             database = self.database
         if table is None:
             table = self.table
-        fields, values = list(data.keys()), list(data.values())
+        if isinstance(data, dict):
+            fields, values = list(data.keys()), list(data.values())
+        elif isinstance(data, (list, tuple)):
+            fields = list(data[0].keys())
+            values = [list(item.values()) for item in data]
         return database, table, fields, values
 
     def update(self, data, filter=None, database=None, table=None):

@@ -90,12 +90,22 @@ class SqliteInterface(DBInterface):
 
     @classmethod
     def _create_fields_value_for_insert(cls, fields, values):
-        assert len(fields) == len(values)
-        safe = {}
+        if isinstance(values, list) and len(values) > 0 and isinstance(values[0], list):
+            assert len(fields) == len(values[0])
+            safe = []
+            for item in values:
+                sd = {}
+                for index, key in enumerate(fields):
+                    sd[key+"value"] = item[index]
+                safe.append(sd)
+        else:
+            assert len(fields) == len(values)
+            safe = {}
+            for index, key in enumerate(fields):
+                safe[key+"value"] = values[index]
+
         fields_str = ", ".join([key for key in fields])
         values_str = ", ".join([":"+key+"value" for key in fields])
-        for index, key in enumerate(fields):
-            safe[key+"value"] = values[index]
         return fields_str, values_str, safe
 
     def _create_sql_query(self, **kwargs):
@@ -203,7 +213,7 @@ class SqliteInterface(DBInterface):
         self._conn.close()
 
     # Tables operations
-    def create_table(self, table, fields={}, exists=True):
+    def create_table(self, table, fields={}, data={}, exists=True):
         assert fields # Thay must not be void
         if isinstance (fields, dict):
             data = list(fields.values())
@@ -249,13 +259,16 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         return Data(self.cursor.fetchall())
 
-    def insert(self, data, **kwargs):
-        database, table, fields, values = super().insert(data, **kwargs)
+    def insert(self, data, database=None, table=None):
+        database, table, fields, values = super().insert(data, database=database, table=table)
         sql, safe = self._create_sql_query(method=INSERT,
                                             table=table,
                                             fields=fields,
                                             data=values)
-        self.cursor.execute(sql, safe)
+        if isinstance(safe, dict):
+            self.cursor.execute(sql, safe)
+        elif isinstance(safe, list):
+            self.cursor.executemany(sql, safe)
         self._conn.commit()
 
     def update(self, data, filter=None, database=None, table=None):
@@ -330,9 +343,17 @@ class SqliteInterface(DBInterface):
         """
         Changes data type for column in specified table table
         """
-        if table is None:
-            table = self.table
-        return table, column, column_type
+        table, column, column_type = super().alter_table_modify_column(column, column_type, table=table)
+        schema = self.get_schema(table=table)
+        schema[column] = column_type
+        temp_table = "_temp_"+table
+        self.create_table(temp_table, fields=list(schema.keys()), data=list(schema.keys()))
+        print(self.get_schema(table=temp_table))
+        data = self.select(table=table)
+        self.insert(data, table=temp_table)
+        self.drop_table(table=table)
+        self.alter_table_rename_table(table, table=temp_table)
+
 
     #Get SCHEMA
     def get_schema(self, table=None):
@@ -371,6 +392,5 @@ class SqliteInterface(DBInterface):
                                                    table=new_table,
                                                    exists=exists)
         sql = " AS ".join((sql_new, sql))
-        print(sql)
         self.cursor.execute(sql, safe)
         self._conn.commit()
