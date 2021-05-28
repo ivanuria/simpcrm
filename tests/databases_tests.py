@@ -184,12 +184,12 @@ class v1_Databases_sqlite(unittest.TestCase):
             Data([{"id": 1, "name": "María", "age": 49, "phone": "+34666777888", "mail": "maria@test.es"}]))
 
     def test_alter_table_drop_column(self):
-        self.db.alter_table_add_column("phone", table="customers")
+        self.db.alter_table_drop_column("phone", table="customers")
         self.assertEqual(self.db.select(table="customers"),
             Data([{"id": 1, "name": "María", "age": 49}]))
 
     def test_alter_table_modify_column(self):
-        self.db.alter_table_rename_table("age", str, table="customers")
+        self.db.alter_table_modify_column("age", str, table="customers")
         self.assertEqual(self.db.select(table="customers"),
             Data([{"id": 1, "name": "María", "age": "49", "contact": "+34666777888"}]))
 
