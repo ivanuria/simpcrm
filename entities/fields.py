@@ -53,6 +53,10 @@ class Fields(dict):
             list(map(lambda x: Field(database, table, x, fields[x]), fields))
 
     @property
+    def database(self):
+        return self._database
+
+    @property
     def table(self):
         return self._table
 
@@ -60,8 +64,37 @@ class Fields(dict):
     def fields(self):
         return dict(self)
 
+    @property
+    def installed(self):
+        return self._installed
+
+    #Overrides
+    def __setitem__(self, key, value):
+        if isinstance(value, Field):
+            if self.installed is True:
+                if key in self:
+                    self.database.alter_table_modify_column(value.name, value.definition, table=self.table)
+                else:
+                    self.database.alter_table_add_column(value.name, value.definition, table=self.table)
+            super().__setitem__(key, value)
+        else:
+            if isinstance(value, type):
+                Field(self.database, self.table, key, key, value)
+            if isinstance(value, dict):
+                name = key
+                definition = str
+                description = ""
+                if "name" in value:
+                    name = value["name"]
+                if "description" in value:
+                    description = value["description"]
+                if "definition" in value and isinstance(value["definition"], type):
+                    definition = value["definition"]
+                Field(self.database, self.table, key, name, definition, description=description)
+
     def values(self): #Let's override this
         return [item.definition for item in super().values()]
 
+    ##methods
     def set_installed(self):
         self._installed = True
