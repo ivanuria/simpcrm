@@ -167,6 +167,31 @@ class v1_Databases_sqlite(unittest.TestCase):
             self.db.set_table("hell")
             self.db.insert({"name": "halo", "love": 10})
 
+    def test_alter_table_rename_table(self):
+        self.db.alter_table_rename_table(self, "clientes", table="customers")
+        self.assertEqual(self.db.select(table="clientes"),
+            Data([{"id": 1, "name": "María", "age": 49, "phone": "+34666777888"}]
+
+    def test_alter_table_rename_column(self):
+        self.db.alter_table_rename_table(self, "phone", "contact", table="customers")
+        self.assertEqual(self.db.select(table="customers"),
+            Data([{"id": 1, "name": "María", "age": 49, "contact": "+34666777888"}]
+
+    def test_alter_table_add_column(self):
+        self.db.alter_table_add_column(self, "mail", str, table="customers")
+        self.db.update({"mail": "maria@test.es"}, filter={"id": 1}, table="customers")
+        self.assertEqual(self.db.select(table="customers"),
+            Data([{"id": 1, "name": "María", "age": 49, "phone": "+34666777888", "mail": "maria@test.es"}]
+
+    def test_alter_table_drop_column(self):
+        self.db.alter_table_add_column(self, "phone", table="customers")
+        self.assertEqual(self.db.select(table="customers"),
+            Data([{"id": 1, "name": "María", "age": 49}]
+
+    def test_alter_table_modify_column(self):
+        self.db.alter_table_rename_table(self, "age", str, table="customers")
+        self.assertEqual(self.db.select(table="customers"),
+            Data([{"id": 1, "name": "María", "age": "49", "contact": "+34666777888"}]
 
 if __name__ == '__main__':
     unittest.main()
