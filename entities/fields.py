@@ -92,6 +92,11 @@ class Fields(dict):
                     definition = value["definition"]
                 Field(self.database, self.table, key, name, definition, description=description)
 
+    def __delitem__(self, key):
+        if key in self and self.installed is True:
+            self.database.alteer_table_drop_column(key, table=self.table)
+        super().__delitem__(key)
+
     def values(self): #Let's override this
         return [item.definition for item in super().values()]
 
