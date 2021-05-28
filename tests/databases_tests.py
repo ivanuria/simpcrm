@@ -49,6 +49,11 @@ class v1_Databases_sqlite(unittest.TestCase):
                          "filtervolumevalue5": 16,
                          "filtergainvalue6": None}))
 
+    def test__create_filter_query_advanced(self):
+        self.assertEqual(SQLite._create_filter_query({"id": [(">=", 0), ("<=", 10)]}),
+                         ("WHERE id>=:filteridvalue0 and id<=:filteridvalue1",
+                         {"filteridvalue0": 0, "filteridvalue1": 10}))
+
     def test__create_fields_pairing(self):
         self.assertEqual(SQLite._create_fields_pairing(["name", "age"], [str, int]),
                          ("name TEXT, age INTEGER",

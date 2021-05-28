@@ -256,7 +256,6 @@ class DBInterface:
         if table is None:
             table = self.table
         schema = self.get_schema(table=table)
-        print(schema)
         for item in schema:
             if isinstance(schema[item], list) and PRIMARY in schema[item]:
                 return item

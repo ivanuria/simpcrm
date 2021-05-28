@@ -11,25 +11,28 @@ LIFETIME = 600
 
 class Item(dict):
     persistent = defaultdict(dict)
-    def __new__(cls, entity, data={}):
+    def __new__(cls, entity, data={}, loop=None):
         primary_key = entity.primary_key
         assert(primary_key in data)
         if entity in cls.persistent and data[primary_key] in cls.persistent[entity]:
             cls.persistent[entity][data[primary_key]].update_data(data)
             return cls.persistent[entity][data[primary_key]]
         else:
-            return super().__new__()
+            return super().__new__(cls)
 
     def __init__(self, entity, data, loop=None):
-        super.__init__(data)
+        super().__init__(data)
         self._primary_key = entity.primary_key
-        self._entity = Entity
+        self._entity = entity
         self._last_event = datetime.now()
         self._last_server_update = datetime.now()
         self._loop = loop
-        self._loop_update()
+        #self.__loop_update()
         self._handler = None
         self._server_changed_handlers = None
+
+    def __del__(self):
+        self.close()
 
     @property
     def entity(self):
@@ -41,8 +44,8 @@ class Item(dict):
 
     def __setitem__(self, key, value):
         if key in self.entity.fields:
-            super.__init__(key, value)
-            self.entity.replace({self.primary_key: self[self.primary_key]}, {key, value})
+            super().__setitem__(key, value)
+            self.entity.replace({self.primary_key: self[self.primary_key]}, {key: value})
             self._last_event = datetime.now()
         else:
             raise Exception("Field not in entity")
@@ -53,6 +56,7 @@ class Item(dict):
 
     def __get_from_server(self):
         self.update_data(self.entity.get())
+        self.__loop_update()
 
     def __loop_update(self):
         if self._loop:
@@ -62,6 +66,10 @@ class Item(dict):
 
     def changed_handler(self, key):
         return lambda x, key=key: self.__setitem__(key, x)
+
+    def close(self):
+        if self._handler is not None:
+            self._handler.cancel()
 
     def update_data(self, data):
         #TODO: Any verification if needed
@@ -77,7 +85,7 @@ class Entity:
     persistent = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
-    def __new__(cls, database, table, name, fields, description, parent="", parent_field=""):
+    def __new__(cls, database, table, name, fields, description, parent="", parent_field="", loop=None):
         if table in cls.persistent[database]:
             self = cls.persistent[database][table]
             if any([name!=self.name,
@@ -95,7 +103,7 @@ class Entity:
         else:
             return super().__new__(cls)
 
-    def __init__(self, database, table, name, fields, description, parent="", parent_field=""):
+    def __init__(self, database, table, name, fields, description, parent="", parent_field="", loop=None):
         assert isinstance(database, DBInterface)
         assert isinstance(fields, dict)
         self.persistent[database][table] = self
@@ -113,6 +121,26 @@ class Entity:
         self._parent_field = parent_field
         self._children = []
         self._primary_key = None
+        self._loop = None
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            if isinstance(key.start, str):
+                data = self.get({key.start: key.stop})
+            elif isinstance(key.start, int):
+                data = self.get({self.primary_key: [(">=", key.start), ("<=", key.stop)]})
+            else:
+                raise TypeError(f"Only int and string in the first field allowed, {type(key.start)}")
+            return [Item(self, item, self._loop) for item in data]
+        elif isinstance(key, int):
+            item = self.get({self.primary_key: key})
+            if item:
+                return [Item(self, item[0], self._loop)]
+        else:
+            raise TypeError("Only int and slice alloed")
+
+    def __del__(self):
+        self.close()
 
     #Properties
     @property
@@ -156,8 +184,11 @@ class Entity:
                     break
         return self._primary_key
 
-
     #Methods
+    def close(self):
+        for item in Item.persistent[self]:
+            item.close()
+
     def delete(self, filter):
         self.database.delete(filter=filter, table=self.table)
 

@@ -7,9 +7,12 @@ import unittest
 from databases.sqlite import SqliteInterface as SQLite, MEMORY
 from databases.databases import Data, SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
 from entities.defaults import get_entity, get_entities, persistent, install_persistency
-from entities.entities import Entity
+from entities.entities import Entity, TIMEOUT
 from entities.fields import Field, Fields
 from sqlite3 import Error
+import threading
+import asyncio
+import time
 
 class v1_Fields(unittest.TestCase):
     def setUp(self):
@@ -122,6 +125,49 @@ class v1_Entity_and_defaults(unittest.TestCase):
         self.assertEqual(self.entity.fields.installed, True)
         self.assertEqual(self.entity.table, "ninini")
         self.assertEqual(self.entity.primary_key, "id")
+
+    def test_get_getitem(self):
+        self.assertEqual(self.entity[1], [{"id": 1, "foo": "Hola", "bar": 10}])
+        self.assertEqual(self.entity[1:10], [{"id": 1, "foo": "Hola", "bar": 10},
+                                             {"id": 2, "foo": "Adios", "bar": 12}])
+        self.assertEqual(self.entity["foo": "Hola"], [{"id": 1, "foo": "Hola", "bar": 10}])
+
+class v1_Item(unittest.TestCase):
+    def setUp(self):
+        self.db = SQLite(server=MEMORY)
+        self.db.connect()
+        install_persistency(self.db)
+        self.loop = asyncio.new_event_loop()
+        self.entity = Entity(self.db, "ninini", "ninini", {"foo": str, "bar": int}, "Test entity", loop=self.loop)
+        self.entity.install()
+        self.entity.insert({"foo": "Hola", "bar": 10})
+        self.entity.insert({"foo": "Adios", "bar": 12})
+        self.thread = threading.Thread(target=self.loop.run_forever)
+        self.thread.start()
+        self.hola, self.adios = self.entity[1:2]
+
+    def test_item_info(self):
+        self.assertEqual(self.hola, {"id": 1, "foo": "Hola", "bar": 10})
+
+    def test_item_setitem(self):
+        self.hola["bar"] = 12
+        self.assertEqual(self.hola, {"id": 1, "foo": "Hola", "bar": 12})
+
+    def test_item_autoupdate(self):
+        self.entity.replace({"id": 1}, {"foo": "jurl jurl jurl"})
+        time.sleep(TIMEOUT)
+        self.assertEqual(self.hola, {"id": 1, "foo": "jurl jurl jurl", "bar": 12})
+
+    def tearDown(self):
+        self.db.disconnect()
+        self.entity.close()
+        self.loop.call_soon_threadsafe(self.loop.stop)
+        while True:
+            if self.loop.is_running() is False:
+                self.loop.close()
+                break
+            time.sleep(1)
+        self.thread.join()
 
 if __name__ == '__main__':
     unittest.main()

@@ -36,22 +36,32 @@ class SqliteInterface(DBInterface):
         assert isinstance(filter, dict)
         if not filter:
             return "", {}
+        keys = []
+        values = []
         for key in filter.keys():
             if not isinstance(filter[key], (list, tuple)) or len(filter[key]) != 2:
-                filter[key] = ["=", filter[key]]
-            elif isinstance(filter[key], (list, tuple)) and len(filter[key]) == 2:
-                if (isinstance(filter[key][0], str) and
-                    filter[key][0].upper() in ("=", "!=", "<=", ">=", "<", ">", "LIKE")):
-                    if filter[key][0].upper() == "LIKE":
-                        filter[key][0] = " LIKE "
+                #filter[key] = ["=", filter[key]]
+                keys.append(key)
+                values.append(["=", filter[key]])
+                continue
+            elif isinstance(filter[key], (list, tuple)) and len(filter[key]) == 2 and not isinstance(filter[key][0], (list, tuple)):
+                filter[key] = [filter[key]]
+            for item in filter[key]:
+                if (isinstance(item[0], str) and
+                    item[0].upper() in ("=", "!=", "<=", ">=", "<", ">", "LIKE")):
+                    if item[0].upper() == "LIKE":
+                        item[0] = " LIKE "
+                    keys.append(key)
+                    values.append(item)
                 else:
                     raise Exception("Operation not allowed (yet)")
-        keys = list(filter.keys())
-        string = " and ".join([key+filter[key][0]+":filter"+key+"value"+str(i) for i, key in enumerate(keys)])
+        #keys = list(filter.keys())
+        string = " and ".join([key+values[i][0]+":filter"+key+"value"+str(i) for i, key in enumerate(keys)])
         string = "WHERE {}".format(string)
         safe = {}
         for i,key in enumerate(keys):
-            safe["filter"+key+"value"+str(i)] = filter[key][1]
+            #safe["filter"+key+"value"+str(i)] = filter[key][1]
+            safe["filter"+key+"value"+str(i)] = values[i][1]
         return string, safe
 
     @classmethod
