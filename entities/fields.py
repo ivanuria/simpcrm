@@ -20,6 +20,7 @@ class Field:
 
     def __init__(self, database, table, name, definition, description=""):
         self._name = name
+        self._database = database
         self._definition = definition
         self.description = description
         self._table = table
@@ -46,10 +47,10 @@ class Field:
         return self._table
 
     def rename(self, new_name):
-        if new_name not in self.persistent[self.database][self.table]:
-            dict().__setitem__(self.persistent[self.database][self.table],
+        if new_name not in Fields.persistent[self.database][self.table]:
+            dict.__setitem__(Fields.persistent[self.database][self.table],
                                new_name, self)
-            dict().__delitem__(self.persistent[self.database][self.table],
+            dict.__delitem__(Fields.persistent[self.database][self.table],
                                self.name)
             self.database.alter_table_rename_column(self._name, new_name, table=self.table)
             self._name = new_name
@@ -100,7 +101,7 @@ class Fields(dict):
         else:
             if isinstance(value, type):
                 Field(self.database, self.table, key, value)
-            if isinstance(value, dict):
+            elif isinstance(value, dict):
                 name = key
                 definition = str
                 description = ""
@@ -111,6 +112,10 @@ class Fields(dict):
                 if "definition" in value and isinstance(value["definition"], type):
                     definition = value["definition"]
                 Field(self.database, self.table, key, name, definition, description=description)
+            elif isinstance(value, str) and key in self:
+                self[key].rename(value)
+            else:
+                raise Exception("Operation not permitted")
 
     def __delitem__(self, key):
         if key in self and self.installed is True:

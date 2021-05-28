@@ -114,6 +114,9 @@ class v1_Entity_and_defaults(unittest.TestCase):
                         [{"id": 1, "foo": "Hola", "bar": 10, "kitty": 1.3}])
 
     def test_change_field(self):
-        self.entity.fields["bar"] = str
+        self.entity.fields["bar"] = "kitty"
         self.assertEqual(self.entity.get({"id": 1}),
-                        [{"id": 1, "foo": "Hola", "bar": "10"}])
+                        [{"id": 1, "foo": "Hola", "kitty": 10}])
+                        
+if __name__ == '__main__':
+    unittest.main()
