@@ -10,7 +10,6 @@ class Field:
             table in Fields.persistent[database] and
             name in Fields.persistent[database][table]):
             if Fields.persistent[database][table][name].definition == definition:
-                print(f"returning {table} {name}")
                 return Fields.persistent[database][table][name]
             else:
                 return super().__new__(cls)

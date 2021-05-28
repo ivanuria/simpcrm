@@ -117,6 +117,11 @@ class v1_Entity_and_defaults(unittest.TestCase):
         self.entity.fields["bar"] = "kitty"
         self.assertEqual(self.entity.get({"id": 1}),
                         [{"id": 1, "foo": "Hola", "kitty": 10}])
-                        
+
+    def test_get_primary_key(self):
+        self.assertEqual(self.entity.fields.installed, True)
+        self.assertEqual(self.entity.table, "ninini")
+        self.assertEqual(self.entity.primary_key, "id")
+
 if __name__ == '__main__':
     unittest.main()

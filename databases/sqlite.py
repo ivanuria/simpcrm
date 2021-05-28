@@ -352,7 +352,6 @@ class SqliteInterface(DBInterface):
         self.insert(data, table=temp_table)
         self.drop_table(table=table)
         self.alter_table_rename_table(table, table=temp_table)
-        
 
     #Get SCHEMA
     def get_schema(self, table=None):
@@ -366,13 +365,16 @@ class SqliteInterface(DBInterface):
         sql, safe = self._create_sql_query(method=GET_SCHEMA,
                                             table=table)
         self.cursor.execute(sql, safe)
-        data = RE.findall(self.cursor.fetchone()["sql"])[2:]
+        data = RE.findall(self.cursor.fetchone()["sql"])[1:]
+        if data[0].strip() == "":
+            del(data[0])
         data = OrderedDict([(item[0], " ".join(item[1:])) for item in [string.strip().split(" ") for string in data]])
         returning = OrderedDict()
 
         for key in data:
             final = []
             prim = []
+            data[key] = data[key].lower()
             if "primary key" in data[key]:
                 prim.append(PRIMARY)
                 data[key] = data[key].replace(" primary key", "").strip()

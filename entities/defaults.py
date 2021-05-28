@@ -14,8 +14,7 @@ def persistent(database):
                      "parent_field": str})
     entity = Entity(database, "__entities", "Entities",
                     ent_fields,
-                    "Entities description",
-                    database)
+                    "Entities description")
 
     field_fields = Fields(database, "__fields",
                           {"name": str,
@@ -25,7 +24,6 @@ def persistent(database):
     fields_entity = Entity(database, "__fields", "Fields",
                           field_fields,
                           "Fields Description",
-                          database,
                           entity,
                           "table")
 
@@ -40,7 +38,7 @@ def get_entity(database, table, ent=None):
     fields.set_installed()
     if ent is None:
         ent = entity.get({"table_name": table})[0] #TODO: raise especial exception if not exists
-    return Entity(database, ent["table_name"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"], installed=True)
+    return Entity(database, ent["table_name"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"])
 
 def get_entities(database):
     entity, fields_entity = persistent(database)

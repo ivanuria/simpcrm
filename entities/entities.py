@@ -5,12 +5,19 @@ from databases.sqlite import SqliteInterface
 from collections import defaultdict
 from .fields import Field, Fields
 
+class Item(dict):
+    persistent = defaultdict(dict)
+
+    def __new__(cls, entity, data={}):
+        if entity in cls.persistent:
+            pass
+
 
 class Entity:
     persistent = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
-    def __new__(cls, database, table, name, fields, description, parent="", parent_field="", installed=False):
+    def __new__(cls, database, table, name, fields, description, parent="", parent_field=""):
         if table in cls.persistent[database]:
             self = cls.persistent[database][table]
             if any([name!=self.name,
@@ -28,7 +35,7 @@ class Entity:
         else:
             return super().__new__(cls)
 
-    def __init__(self, database, table, name, fields, description, parent="", parent_field="", installed=False):
+    def __init__(self, database, table, name, fields, description, parent="", parent_field=""):
         assert isinstance(database, DBInterface)
         assert isinstance(fields, dict)
         self.persistent[database][table] = self
@@ -45,7 +52,7 @@ class Entity:
             parent.set_child(self)
         self._parent_field = parent_field
         self._children = []
-        self._installed = installed
+        self._primary_key = None
 
     #Properties
     @property
@@ -75,6 +82,20 @@ class Entity:
     @property
     def table(self):
         return self._table
+
+    @property
+    def primary_key(self):
+        if self.fields.installed is True:
+            if self._primary_key is None:
+                self._primary_key = self.database.get_primary_key(self.table)
+        else:
+            for field in self.fields:
+                definition = self.fields[field].definition
+                if isinstance(definition, list) and PRIMARY in definition:
+                    self._primary_key = field
+                    break
+        return self._primary_key
+
 
     #Methods
     def delete(self, filter):

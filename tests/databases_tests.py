@@ -218,5 +218,8 @@ class v1_Databases_sqlite(unittest.TestCase):
             Data([{"id": 1, "name": "María", "age": "49", "phone": "+34666777888"},
                   {"id": 2, "name": "José", "age": "33", "phone": "+34777888999"}]))
 
+    def test_get_primary_key(self):
+        self.assertEqual(self.db.get_primary_key("customers"), "id")
+
 if __name__ == '__main__':
     unittest.main()
