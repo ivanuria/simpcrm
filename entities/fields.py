@@ -24,8 +24,16 @@ class Field:
         Fields.persistent[database][table][name] = self
 
     @property
+    def database(self):
+        return self._database
+
+    @property
     def name(self):
         return self._name
+
+    @name.setter
+    def name(self, value):
+        self.rename(value)
 
     @property
     def definition(self):
@@ -34,6 +42,15 @@ class Field:
     @property
     def table(self):
         return self._table
+
+    def rename(self, new_name):
+        if new_name not in self.persistent[self.database][self.table]:
+            dict().__setitem__(self.persistent[self.database][self.table],
+                               new_name, self)
+            dict().__delitem__(self.persistent[self.database][self.table],
+                               self.name)
+            self.database.alter_table_rename_column(self._name, new_name, table=self.table)
+            self._name = new_name
 
 class Fields(dict):
     persistent = defaultdict(dict)
