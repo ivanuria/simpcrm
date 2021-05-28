@@ -4,7 +4,7 @@ import sqlite3
 from databases.databases import Data, DBInterface
 from databases.databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
 from databases.databases import ALTER_TABLE_ADD_COLUMN, ALTER_TABLE_DROP_COLUMN, ALTER_TABLE_RENAME_TABLE
-from databases.databases import ALTER_TABLE_MODIFY_COLUMN, ALTER_TABLE_RENAME_COLUMN
+from databases.databases import ALTER_TABLE_MODIFY_COLUMN, ALTER_TABLE_RENAME_COLUMN, GET_SCHEMA
 from databases.databases import PRIMARY
 from collections import defaultdict
 
@@ -127,9 +127,10 @@ class SqliteInterface(DBInterface):
                     CREATE_TABLE: "CREATE TABLE {exists} {table} ({pairing});",
                     DROP_TABLE: "DROP TABLE IF EXISTS {table}",
                     ALTER_TABLE_ADD_COLUMN: "ALTER TABLE {table} ADD COLUMN {pairing};",
-                    ALTER_TABLE_DROP_COLUMN: "ALTER TABLE {table} {column};",
+                    ALTER_TABLE_DROP_COLUMN: "ALTER TABLE {table} DROP COLUMN {column};",
                     ALTER_TABLE_RENAME_TABLE: "ALTER TABLE {table} RENAME TO {new_name};",
-                    ALTER_TABLE_RENAME_COLUMN: "ALTER TABLE {table} RENAME COLUMN {column} TO {new_name};"}
+                    ALTER_TABLE_RENAME_COLUMN: "ALTER TABLE {table} RENAME COLUMN {column} TO {new_name};",
+                    GET_SCHEMA: "SELECT sql FROM sqlite_master WHERE name = :table";}
 
         if method == SELECT:
             if fields and (isinstance(fields, list) or isinstance(fields, tuple)):
@@ -301,9 +302,14 @@ class SqliteInterface(DBInterface):
         """
         Adds new column in specified table table
         """
-        if table is None:
-            table = self.table
-        return table, column
+        #Although defined in sqlite documentation, clause is not recognized. This will be a little tricky
+        table, column = super().alter_table_drop_column(column, table=table)
+        sql, safe = self._create_sql_query(method=ALTER_TABLE_DROP_COLUMN,
+                                            table=table,
+                                            fields=[column])
+        print(sql)
+        self.cursor.execute(sql, safe)
+        self._conn.commit()
 
     def alter_table_modify_column(self, column, column_type, table=None):
         """
@@ -312,3 +318,7 @@ class SqliteInterface(DBInterface):
         if table is None:
             table = self.table
         return table, column, column_type
+
+    #Get SCHEMA
+    def get_schema(self, table=None):
+        table = super().get_schema(table=table)

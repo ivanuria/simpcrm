@@ -11,6 +11,7 @@ ALTER_TABLE_DROP_COLUMN = "ALTER TABLE DROP COLUMN"
 ALTER_TABLE_RENAME_TABLE = "ALTER TABLE RENAME TABLE"
 ALTER_TABLE_RENAME_COLUMN = "ALTER TABLE RENAME COLUMN"
 ALTER_TABLE_MODIFY_COLUMN = "ALTER TABLE MODIFY COLUMN"
+GET_SCHEMA = "GET SCHEMA"
 
 PRIMARY = "PRIMARY"
 
@@ -241,3 +242,9 @@ class DBInterface:
         if table is None:
             table = self.table
         return table, column, column_type
+
+    #Get SCHEMA
+    def get_schema(self, table=None):
+        if table is None:
+            table = self.table
+        return table
