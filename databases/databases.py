@@ -194,3 +194,37 @@ class DBInterface:
         if table is None:
             table = self.table
         return filter, database, table
+
+    #Table Alterations
+    def alter_table_rename_table(self, new_name, table=None):
+        """
+        Changes name of table
+        """
+        if table is None:
+            table = self.table
+        self.set_table(new_name)
+        return table, new_name
+
+    def alter_table_rename_column(self, column, new_name, table=None):
+        """
+        Changes name of column is specified table table
+        """
+        if table is None:
+            table = self.table
+        return table, column, new_name
+
+    def alter_table_add_column(self, column, column_type, table=None):
+        """
+        Adds new column in specified table table
+        """
+        if table is None:
+            table = self.table
+        return table, column, column_type
+
+    def alter_table_drop_column(self, column, table=None):
+        """
+        Adds new column in specified table table
+        """
+        if table is None:
+            table = self.table
+        return table, column
