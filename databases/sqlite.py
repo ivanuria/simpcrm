@@ -106,7 +106,11 @@ class SqliteInterface(DBInterface):
         table = kwargs["table"]
         method = kwargs["method"]
         fields = kwargs["fields"]
+        if not isinstance(fields, (list, tuple)):
+            fields = [fields]
         data = kwargs["data"]
+        if not isinstance(data, (list, tuple)):
+            data = [data]
         filter = kwargs["filter"]
         if not isinstance(filter, dict):
             filter = {}
@@ -121,7 +125,11 @@ class SqliteInterface(DBInterface):
                     UPDATE: "UPDATE {table} SET {pairing} {where};",
                     DELETE: "DELETE from {table} {where};",
                     CREATE_TABLE: "CREATE TABLE {exists} {table} ({pairing});",
-                    DROP_TABLE: "DROP TABLE IF EXISTS {table}"}
+                    DROP_TABLE: "DROP TABLE IF EXISTS {table}",
+                    ALTER_TABLE_ADD_COLUMN: "ALTER TABLE {table} ADD COLUMN {pairing};",
+                    ALTER_TABLE_DROP_COLUMN: "ALTER TABLE {table} {column};",
+                    ALTER_TABLE_RENAME_TABLE: "ALTER TABLE {table} RENAME TO {new_name};",
+                    ALTER_TABLE_RENAME_COLUMN: "ALTER TABLE {table} RENAME COLUMN {column} TO {new_name};"}
 
         if method == SELECT:
             if fields and (isinstance(fields, list) or isinstance(fields, tuple)):
@@ -158,6 +166,15 @@ class SqliteInterface(DBInterface):
                                                  table=table)
         elif method == DROP_TABLE:
             sql_string = template[method].format(table=table)
+        elif method == ALTER_TABLE_ADD_COLUMN:
+            pairing, sql_safe_passing = self._create_fields_pairing(fields, data, " ")
+            sql_string = template[method].format(table=table, pairing=pairing)
+        elif method == ALTER_TABLE_DROP_COLUMN:
+            sql_string = template[method].format(table=table, column=fields[0])
+        elif method == ALTER_TABLE_RENAME_TABLE:
+            sql_string = template[method].format(table=table, new_name=data[0])
+        elif method == ALTER_TABLE_RENAME_COLUMN:
+            sql_string = template[method].format(table=table, column=fields[0], new_name=data[0])
 
         return sql_string, sql_safe_passing
     # Connection Methods
@@ -249,10 +266,12 @@ class SqliteInterface(DBInterface):
         """
         Changes name of table
         """
-        if table is None:
-            table = self.table
-        self.set_table(new_name)
-        return table, new_name
+        table, new_name = super().alter_table_rename_table(new_name, table=table)
+        sql, safe = self._create_sql_query(method=ALTER_TABLE_RENAME_TABLE,
+                                            table=table,
+                                            data=[new_name])
+        self.cursor.execute(sql, safe)
+        self._conn.commit()
 
     def alter_table_rename_column(self, column, new_name, table=None):
         """
