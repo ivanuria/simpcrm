@@ -27,7 +27,7 @@ class Item(dict):
         self._last_event = datetime.now()
         self._last_server_update = datetime.now()
         self._loop = loop
-        #self.__loop_update()
+        self._loop_update()
         self._handler = None
         self._server_changed_handlers = None
 
@@ -54,15 +54,17 @@ class Item(dict):
         self._last_event = datetime.now()
         return super().__getitem__(key)
 
-    def __get_from_server(self):
-        self.update_data(self.entity.get())
-        self.__loop_update()
+    def _get_from_server(self):
+        data = self.entity.get({self.primary_key: self[self.primary_key]})
+        if data:
+            self.update_data(data[0])
+        self._loop_update()
 
-    def __loop_update(self):
+    def _loop_update(self):
         if self._loop:
             self._handler = self._loop.call_soon_threadsafe(lambda: self._loop.call_later(
                                                             TIMEOUT,
-                                                            self.__get_from_server))
+                                                            self._get_from_server))
 
     def changed_handler(self, key):
         return lambda x, key=key: self.__setitem__(key, x)
@@ -70,6 +72,7 @@ class Item(dict):
     def close(self):
         if self._handler is not None:
             self._handler.cancel()
+        self._loop = None
 
     def update_data(self, data):
         #TODO: Any verification if needed
@@ -121,7 +124,7 @@ class Entity:
         self._parent_field = parent_field
         self._children = []
         self._primary_key = None
-        self._loop = None
+        self._loop = loop
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -131,11 +134,11 @@ class Entity:
                 data = self.get({self.primary_key: [(">=", key.start), ("<=", key.stop)]})
             else:
                 raise TypeError(f"Only int and string in the first field allowed, {type(key.start)}")
-            return [Item(self, item, self._loop) for item in data]
+            return [Item(self, item, loop=self._loop) for item in data]
         elif isinstance(key, int):
             item = self.get({self.primary_key: key})
             if item:
-                return [Item(self, item[0], self._loop)]
+                return [Item(self, item[0], loop=self._loop)]
         else:
             raise TypeError("Only int and slice alloed")
 
@@ -186,6 +189,11 @@ class Entity:
 
     #Methods
     def close(self):
+        if self._loop is not None:
+            try:
+                self._loop.call_soon_threadsafe(self.database.disconnect)
+            except RuntimeError:
+                pass #It's called always because of __del__
         for item in Item.persistent[self]:
             item.close()
 

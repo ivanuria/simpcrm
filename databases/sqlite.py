@@ -8,6 +8,7 @@ from databases.databases import ALTER_TABLE_MODIFY_COLUMN, ALTER_TABLE_RENAME_CO
 from databases.databases import PRIMARY
 from collections import defaultdict, OrderedDict
 import re
+import threading
 
 MEMORY = ":memory:"
 RE = re.compile(r"[a-zA-Z0-9 ]+")
@@ -23,11 +24,21 @@ def dict_factory(cursor, row): # Stolen from documentation
 class SqliteInterface(DBInterface):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._conn = {}
+        self._cursor = {}
         self.connect()
 
     @property
     def cursor(self):
-        return self._cursor
+        if not threading.currentThread() in self._cursor:
+            self.connect()
+        return self._cursor[threading.currentThread()]
+
+    @property
+    def conn(self):
+        if not threading.currentThread() in self._conn:
+            self.connect()
+        return self._conn[threading.currentThread()]
 
     # Static Methods
 
@@ -215,12 +226,13 @@ class SqliteInterface(DBInterface):
     # Connection Methods
 
     def connect(self):
-        self._conn = sqlite3.connect(self._server)
-        self._conn.row_factory = dict_factory
-        self._cursor = self._conn.cursor()
+        self._conn[threading.currentThread()] = sqlite3.connect(self._server)
+        self._conn[threading.currentThread()].row_factory = dict_factory
+        self._cursor[threading.currentThread()] = self._conn[threading.currentThread()].cursor()
 
     def disconnect(self):
-        self._conn.close()
+        self.conn.close()
+        del(self._conn[threading.currentThread()])
 
     # Tables operations
     def create_table(self, table, fields={}, data={}, exists=True):
@@ -246,7 +258,7 @@ class SqliteInterface(DBInterface):
                       exists=exists)
         sql, safe = self._create_sql_query(**kwargs)
         self.cursor.execute(sql, safe)
-        self._conn.commit()
+        self.conn.commit()
 
     def drop_table(self, table, database=None):
         """
@@ -279,7 +291,7 @@ class SqliteInterface(DBInterface):
             self.cursor.execute(sql, safe)
         elif isinstance(safe, list):
             self.cursor.executemany(sql, safe)
-        self._conn.commit()
+        self.conn.commit()
 
     def update(self, data, filter=None, database=None, table=None):
         filter, database, table, fields, values = super().update(data, filter=filter, database=database, table=table)
@@ -289,7 +301,7 @@ class SqliteInterface(DBInterface):
                                             data=values,
                                             filter=filter)
         self.cursor.execute(sql, safe)
-        self._conn.commit()
+        self.conn.commit()
 
     def delete(self, **kwargs):
         filter, database, table = super().delete(**kwargs)
@@ -297,7 +309,7 @@ class SqliteInterface(DBInterface):
                                             table=table,
                                             filter=filter)
         self.cursor.execute(sql, safe)
-        self._conn.commit()
+        self.conn.commit()
 
     #Table Alterations
     def alter_table_rename_table(self, new_name, table=None):
@@ -309,7 +321,7 @@ class SqliteInterface(DBInterface):
                                             table=table,
                                             data=[new_name])
         self.cursor.execute(sql, safe)
-        self._conn.commit()
+        self.conn.commit()
 
     def alter_table_rename_column(self, column, new_name, table=None):
         """
@@ -321,7 +333,7 @@ class SqliteInterface(DBInterface):
                                             fields=[column],
                                             data=[new_name])
         self.cursor.execute(sql, safe)
-        self._conn.commit()
+        self.conn.commit()
 
     def alter_table_add_column(self, column, column_type, table=None):
         """
@@ -333,7 +345,7 @@ class SqliteInterface(DBInterface):
                                             fields=[column],
                                             data=[column_type])
         self.cursor.execute(sql, safe)
-        self._conn.commit()
+        self.conn.commit()
 
     def alter_table_drop_column(self, column, table=None):
         """
@@ -407,4 +419,4 @@ class SqliteInterface(DBInterface):
                                                    exists=exists)
         sql = " AS ".join((sql_new, sql))
         self.cursor.execute(sql, safe)
-        self._conn.commit()
+        self.conn.commit()

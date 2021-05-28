@@ -13,6 +13,7 @@ from sqlite3 import Error
 import threading
 import asyncio
 import time
+import os
 
 class v1_Fields(unittest.TestCase):
     def setUp(self):
@@ -134,7 +135,7 @@ class v1_Entity_and_defaults(unittest.TestCase):
 
 class v1_Item(unittest.TestCase):
     def setUp(self):
-        self.db = SQLite(server=MEMORY)
+        self.db = SQLite(server="test.db")
         self.db.connect()
         install_persistency(self.db)
         self.loop = asyncio.new_event_loop()
@@ -146,18 +147,6 @@ class v1_Item(unittest.TestCase):
         self.thread.start()
         self.hola, self.adios = self.entity[1:2]
 
-    def test_item_info(self):
-        self.assertEqual(self.hola, {"id": 1, "foo": "Hola", "bar": 10})
-
-    def test_item_setitem(self):
-        self.hola["bar"] = 12
-        self.assertEqual(self.hola, {"id": 1, "foo": "Hola", "bar": 12})
-
-    def test_item_autoupdate(self):
-        self.entity.replace({"id": 1}, {"foo": "jurl jurl jurl"})
-        time.sleep(TIMEOUT)
-        self.assertEqual(self.hola, {"id": 1, "foo": "jurl jurl jurl", "bar": 12})
-
     def tearDown(self):
         self.db.disconnect()
         self.entity.close()
@@ -168,6 +157,30 @@ class v1_Item(unittest.TestCase):
                 break
             time.sleep(1)
         self.thread.join()
+        os.remove("test.db")
+
+    def test_entity_loop(self):
+        self.assertEqual(self.entity._loop, self.loop)
+        self.assertEqual(self.hola._loop, self.loop)
+
+    def test_item_info(self):
+        self.assertEqual(self.hola, {"id": 1, "foo": "Hola", "bar": 10})
+
+    def test_item_setitem(self):
+        self.hola["bar"] = 12
+        self.assertEqual(self.hola, {"id": 1, "foo": "Hola", "bar": 12})
+
+    def test_item_get_from_server(self):
+        self.hola.close()
+        self.entity.replace({"id": 1}, {"foo": "jurl jurl jurl"})
+        self.hola._get_from_server()
+        self.assertEqual(self.hola, {"id": 1, "foo": "jurl jurl jurl", "bar": 10})
+
+    def test_item_automatic_update(self):
+        self.assertEqual(self.hola._loop, self.loop)
+        self.entity.replace({"id": 1}, {"foo": "jurl jurl jurl"})
+        time.sleep(TIMEOUT+2)
+        self.assertEqual(self.hola, {"id": 1, "foo": "jurl jurl jurl", "bar": 10})
 
 if __name__ == '__main__':
     unittest.main()

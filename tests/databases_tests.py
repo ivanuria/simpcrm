@@ -13,8 +13,8 @@ class v1_Databases_sqlite(unittest.TestCase):
     def setUp(self):
         self.db = SQLite(server=MEMORY)
         self.db.connect()
-        self.cursor = self.db._cursor
-        self.conn = self.db._conn
+        self.cursor = self.db.cursor
+        self.conn = self.db.conn
         self.cursor.execute("""Create table customers
             (id integer primary key, name text, phone text, age integer)""")
         self.cursor.execute(""" insert into customers (name, phone, age)
