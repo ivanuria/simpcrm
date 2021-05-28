@@ -4,13 +4,73 @@ from databases.databases import DBInterface
 from databases.sqlite import SqliteInterface
 from collections import defaultdict
 from .fields import Field, Fields
+from datetime import datetime, timedelta
+
+TIMEOUT = 10
+LIFETIME = 600
 
 class Item(dict):
     persistent = defaultdict(dict)
-
     def __new__(cls, entity, data={}):
-        if entity in cls.persistent:
-            pass
+        primary_key = entity.primary_key
+        assert(primary_key in data)
+        if entity in cls.persistent and data[primary_key] in cls.persistent[entity]:
+            cls.persistent[entity][data[primary_key]].update_data(data)
+            return cls.persistent[entity][data[primary_key]]
+        else:
+            return super().__new__()
+
+    def __init__(self, entity, data, loop=None):
+        super.__init__(data)
+        self._primary_key = entity.primary_key
+        self._entity = Entity
+        self._last_event = datetime.now()
+        self._last_server_update = datetime.now()
+        self._loop = loop
+        self._loop_update()
+        self._handler = None
+        self._server_changed_handlers = None
+
+    @property
+    def entity(self):
+        return self._entity
+
+    @property
+    def primary_key(self):
+        return self._primary_key
+
+    def __setitem__(self, key, value):
+        if key in self.entity.fields:
+            super.__init__(key, value)
+            self.entity.replace({self.primary_key: self[self.primary_key]}, {key, value})
+            self._last_event = datetime.now()
+        else:
+            raise Exception("Field not in entity")
+
+    def __getitem__(self, key):
+        self._last_event = datetime.now()
+        return super().__getitem__(key)
+
+    def __get_from_server(self):
+        self.update_data(self.entity.get())
+
+    def __loop_update(self):
+        if self._loop:
+            self._handler = self._loop.call_soon_threadsafe(lambda: self._loop.call_later(
+                                                            TIMEOUT,
+                                                            self.__get_from_server))
+
+    def changed_handler(self, key):
+        return lambda x, key=key: self.__setitem__(key, x)
+
+    def update_data(self, data):
+        #TODO: Any verification if needed
+        self.update(data)
+        if self._server_changed_handlers is not None and isinstance(self._server_changed_handlers, dict):
+            for key in self.entity.fields:
+                if key in self.self._server_changed_handlers and key in data:
+                    self.self._server_changed_handlers[key](data[key])
+
 
 
 class Entity:
