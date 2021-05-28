@@ -228,3 +228,11 @@ class DBInterface:
         if table is None:
             table = self.table
         return table, column
+
+    def alter_table_modify_column(self, column, column_type, table=None):
+        """
+        Changes data type for column in specified table table
+        """
+        if table is None:
+            table = self.table
+        return table, column, column_type
