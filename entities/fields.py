@@ -13,7 +13,8 @@ class Field:
                 print(f"returning {table} {name}")
                 return Fields.persistent[database][table][name]
             else:
-                raise Exception ("field {} previously instantiated: {} Vs {}".format(name, definition, Fields.persistent[database][table][name].definition))
+                return super().__new__(cls)
+                #raise Exception ("field {} previously instantiated: {} Vs {}".format(name, definition, Fields.persistent[database][table][name].definition))
         else:
             return super().__new__(cls)
 
