@@ -7,7 +7,7 @@ from .fields import Field, Fields
 from datetime import datetime, timedelta
 
 TIMEOUT = 10
-LIFETIME = 600
+LIFETIME = 600 # Fot future implementation
 
 def set_timeout(timeout):
     TIMEOUT = timeout
