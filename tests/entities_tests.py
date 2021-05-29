@@ -5,7 +5,7 @@ VERSION = 0.1
 
 import unittest
 from databases.sqlite import SqliteInterface as SQLite, MEMORY
-from databases.databases import Data, SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
+from databases.databases import Data, DBEnums
 from entities.defaults import get_entity, get_entities, persistent, install_persistency
 from entities.entities import Entity, TIMEOUT, set_timeout
 from entities.fields import Field, Fields

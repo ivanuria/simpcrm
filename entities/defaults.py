@@ -2,13 +2,13 @@
 
 from .fields import Field, Fields
 from .entities import Entity
-from databases.databases import DBInterface, PRIMARY
+from databases.databases import DBInterface, DBEnums
 
 def persistent(database):
     assert isinstance(database, DBInterface)
     ent_fields = Fields(database, "__entities",
                     {"name": str,
-                     "table_name": [str, PRIMARY],
+                     "table_name": [str, DBEnums.PRIMARY],
                      "description": str,
                      "parent": str,
                      "parent_field": str})

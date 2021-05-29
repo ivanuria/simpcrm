@@ -1,1 +1,1 @@
-from .emtities import Item, Entity, set_timeout
+from .entities import Item, Entity, set_timeout
