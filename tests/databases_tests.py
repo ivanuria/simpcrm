@@ -5,8 +5,7 @@ VERSION = 0.1
 
 import unittest
 from databases.sqlite import SqliteInterface as SQLite, MEMORY
-from databases.databases import Data, SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
-from databases.databases import PRIMARY
+from databases.databases import Data, DBEnums
 from sqlite3 import Error
 
 class v1_Databases_sqlite(unittest.TestCase):
@@ -80,7 +79,7 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.assertEqual(self.db._create_sql_query(table="foo",
                                                    fields=["a", "b"],
                                                    data=[1, "dos"],
-                                                   method=INSERT),
+                                                   method=DBEnums.INSERT),
                         ("INSERT INTO foo (a, b) VALUES (:avalue, :bvalue);",
                         {"avalue": 1, "bvalue": "dos"}))
 
@@ -89,14 +88,14 @@ class v1_Databases_sqlite(unittest.TestCase):
                                                    fields=["a", "b"],
                                                    data=[1, "dos"],
                                                    filter={"a": 1, "b": "dos"},
-                                                   method=UPDATE),
+                                                   method=DBEnums.UPDATE),
                         ("UPDATE foo SET a=:avalue, b=:bvalue WHERE a=:filteravalue0 and b=:filterbvalue1;",
                         {"avalue": 1, "bvalue": "dos", "filteravalue0": 1, "filterbvalue1": "dos"}))
 
     def test__create_sql_query_delete(self):
         self.assertEqual(self.db._create_sql_query(table="foo",
                                                    filter={"a": 1, "b": "dos"},
-                                                   method=DELETE),
+                                                   method=DBEnums.DELETE),
                         ("DELETE from foo WHERE a=:filteravalue0 and b=:filterbvalue1;",
                         {"filteravalue0": 1, "filterbvalue1": "dos"}))
 
@@ -104,14 +103,14 @@ class v1_Databases_sqlite(unittest.TestCase):
         self.assertEqual(self.db._create_sql_query(table="foo",
                                                    fields=["a", "b"],
                                                    data=[int, str],
-                                                   method=CREATE_TABLE,
+                                                   method=DBEnums.CREATE_TABLE,
                                                    exists=True),
                         ("CREATE TABLE IF NOT EXISTS foo (a INTEGER, b TEXT);",
                         {}))
 
     def test__create_sql_query_drop_table(self):
         self.assertEqual(self.db._create_sql_query(table="foo",
-                                                   method=DROP_TABLE),
+                                                   method=DBEnums.DROP_TABLE),
                         ("DROP TABLE IF EXISTS foo",
                         {}))
 
@@ -200,7 +199,7 @@ class v1_Databases_sqlite(unittest.TestCase):
 
     def test_get_schema(self):
         self.assertEqual(dict(self.db.get_schema(table="customers")),
-                        {"id": [int, PRIMARY], "name": [str], "age": [int], "phone": [str]})
+                        {"id": [int, DBEnums.PRIMARY], "name": [str], "age": [int], "phone": [str]})
 
     def test_create_table_as_another(self):
         self.db.insert(data={"name": "José", "age": 33, "phone": "+34777888999"}, table="customers")

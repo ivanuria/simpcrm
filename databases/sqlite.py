@@ -1,11 +1,7 @@
 # sqlite.py file inheriting from databases.py
 
 import sqlite3
-from databases.databases import Data, DBInterface
-from databases.databases import SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
-from databases.databases import ALTER_TABLE_ADD_COLUMN, ALTER_TABLE_DROP_COLUMN, ALTER_TABLE_RENAME_TABLE
-from databases.databases import ALTER_TABLE_MODIFY_COLUMN, ALTER_TABLE_RENAME_COLUMN, GET_SCHEMA
-from databases.databases import PRIMARY
+from databases.databases import Data, DBInterface, DBEnums
 from collections import defaultdict, OrderedDict
 import re
 import threading
@@ -89,7 +85,7 @@ class SqliteInterface(DBInterface):
             BLOB. The value is a blob of data, stored exactly as it was input.
             """
             defs = defaultdict(lambda: "TEXT",
-                                {PRIMARY: "PRIMARY KEY",
+                                {DBEnums.PRIMARY: "PRIMARY KEY",
                                 str: "TEXT",
                                 int: "INTEGER",
                                 float: "REAL",
@@ -155,20 +151,20 @@ class SqliteInterface(DBInterface):
             exists = False
         sql_string = ""
         sql_safe_passing = {}
-        template = {SELECT: "SELECT {fields} FROM {table} {where};",
-                    INSERT: "INSERT INTO {table} ({fields}) VALUES ({values});",
-                    UPDATE: "UPDATE {table} SET {pairing} {where};",
-                    DELETE: "DELETE from {table} {where};",
-                    CREATE_TABLE: "CREATE TABLE {exists} {table} ({pairing});",
-                    CREATE_TABLE_AS_ANOTHER: "CREATE TABLE {exists} {table}",
-                    DROP_TABLE: "DROP TABLE IF EXISTS {table}",
-                    ALTER_TABLE_ADD_COLUMN: "ALTER TABLE {table} ADD COLUMN {pairing};",
-                    ALTER_TABLE_DROP_COLUMN: "ALTER TABLE {table} DROP COLUMN {column};",
-                    ALTER_TABLE_RENAME_TABLE: "ALTER TABLE {table} RENAME TO {new_name};",
-                    ALTER_TABLE_RENAME_COLUMN: "ALTER TABLE {table} RENAME COLUMN {column} TO {new_name};",
-                    GET_SCHEMA: "SELECT * FROM sqlite_master WHERE name = :table;"}
+        template = {DBEnums.SELECT: "SELECT {fields} FROM {table} {where};",
+                    DBEnums.INSERT: "INSERT INTO {table} ({fields}) VALUES ({values});",
+                    DBEnums.UPDATE: "UPDATE {table} SET {pairing} {where};",
+                    DBEnums.DELETE: "DELETE from {table} {where};",
+                    DBEnums.CREATE_TABLE: "CREATE TABLE {exists} {table} ({pairing});",
+                    DBEnums.CREATE_TABLE_AS_ANOTHER: "CREATE TABLE {exists} {table}",
+                    DBEnums.DROP_TABLE: "DROP TABLE IF EXISTS {table}",
+                    DBEnums.ALTER_TABLE_ADD_COLUMN: "ALTER TABLE {table} ADD COLUMN {pairing};",
+                    DBEnums.ALTER_TABLE_DROP_COLUMN: "ALTER TABLE {table} DROP COLUMN {column};",
+                    DBEnums.ALTER_TABLE_RENAME_TABLE: "ALTER TABLE {table} RENAME TO {new_name};",
+                    DBEnums.ALTER_TABLE_RENAME_COLUMN: "ALTER TABLE {table} RENAME COLUMN {column} TO {new_name};",
+                    DBEnums.GET_SCHEMA: "SELECT * FROM sqlite_master WHERE name = :table;"}
 
-        if method == SELECT:
+        if method is DBEnums.SELECT:
             if fields and (isinstance(fields, list) or isinstance(fields, tuple)):
                 field_str = ", ".join(fields)
             else:
@@ -177,22 +173,22 @@ class SqliteInterface(DBInterface):
             sql_string = template[method].format(fields=field_str,
                                                 where=where_str,
                                                 table=table)
-        elif method == INSERT:
+        elif method is DBEnums.INSERT:
             fields_str, values_str, sql_safe_passing = self._create_fields_value_for_insert(fields, data)
             sql_string = template[method].format(fields=fields_str,
                                                 values=values_str,
                                                 table=table)
-        elif method == UPDATE:
+        elif method is DBEnums.UPDATE:
             pairing, sql_safe_passing = self._create_fields_pairing(fields, data, "=")
             where_str, safe = self._create_filter_query(filter)
             sql_string = template[method].format(pairing=pairing,
                                                  where=where_str,
                                                  table=table)
             sql_safe_passing.update(safe)
-        elif method == DELETE:
+        elif method is DBEnums.DELETE:
             where_str, sql_safe_passing = self._create_filter_query(filter)
             sql_string = template[method].format(where=where_str, table=table)
-        elif method == CREATE_TABLE:
+        elif method is DBEnums.CREATE_TABLE:
             pairing, sql_safe_passing = self._create_fields_pairing(fields, data, " ")
             if exists:
                 exists_str = "IF NOT EXISTS"
@@ -201,21 +197,21 @@ class SqliteInterface(DBInterface):
             sql_string = template[method].format(pairing=pairing,
                                                  exists=exists_str,
                                                  table=table)
-        elif method == DROP_TABLE:
+        elif method is DBEnums.DROP_TABLE:
             sql_string = template[method].format(table=table)
-        elif method == ALTER_TABLE_ADD_COLUMN:
+        elif method is DBEnums.ALTER_TABLE_ADD_COLUMN:
             pairing, sql_safe_passing = self._create_fields_pairing(fields, data, " ")
             sql_string = template[method].format(table=table, pairing=pairing)
-        elif method == ALTER_TABLE_DROP_COLUMN:
+        elif method is DBEnums.ALTER_TABLE_DROP_COLUMN:
             sql_string = template[method].format(table=table, column=fields[0])
-        elif method == ALTER_TABLE_RENAME_TABLE:
+        elif method is DBEnums.ALTER_TABLE_RENAME_TABLE:
             sql_string = template[method].format(table=table, new_name=data[0])
-        elif method == ALTER_TABLE_RENAME_COLUMN:
+        elif method is DBEnums.ALTER_TABLE_RENAME_COLUMN:
             sql_string = template[method].format(table=table, column=fields[0], new_name=data[0])
-        elif method == GET_SCHEMA:
+        elif method is DBEnums.GET_SCHEMA:
             sql_string = template[method]
             sql_safe_passing = {"table": table}
-        elif method == CREATE_TABLE_AS_ANOTHER:
+        elif method is DBEnums.CREATE_TABLE_AS_ANOTHER:
             if exists:
                 exists_str = "IF NOT EXISTS"
             else:
@@ -240,9 +236,9 @@ class SqliteInterface(DBInterface):
         if isinstance (fields, dict):
             data = list(fields.values())
             fields = list(fields.keys())
-        if not any([PRIMARY in item for item in data if isinstance(item, (list, tuple))]):
+        if not any([DBEnums.PRIMARY in item for item in data if isinstance(item, (list, tuple))]):
             if not any("id" in item.lower() for item in fields):
-                data = [(int, PRIMARY)] + data
+                data = [(int, DBEnums.PRIMARY)] + data
                 fields = ["id"] + fields
             else:
                 index = fields.index("id")
@@ -251,7 +247,7 @@ class SqliteInterface(DBInterface):
                 else:
                     data[index] = (data[index], PRIMARY)
         kwargs = self.sql_dict
-        kwargs.update(method=CREATE_TABLE,
+        kwargs.update(method=DBEnums.CREATE_TABLE,
                       table=table,
                       fields=fields,
                       data=data,
@@ -265,7 +261,7 @@ class SqliteInterface(DBInterface):
         drops selected table
         """
         database, table = super().drop_table(database=database, table=table)
-        sql, safe = self._create_sql_query(method=DROP_TABLE,
+        sql, safe = self._create_sql_query(method=DBEnums.DROP_TABLE,
                                             table=table)
         self.cursor.execute(sql, safe)
         return Data(self.cursor.fetchall())
@@ -274,7 +270,7 @@ class SqliteInterface(DBInterface):
 
     def select(self, **kwargs):
         filter, database, table, fields = super().select(**kwargs)
-        sql, safe = self._create_sql_query(method=SELECT,
+        sql, safe = self._create_sql_query(method=DBEnums.SELECT,
                                             table=table,
                                             fields=fields,
                                             filter=filter)
@@ -283,7 +279,7 @@ class SqliteInterface(DBInterface):
 
     def insert(self, data, database=None, table=None):
         database, table, fields, values = super().insert(data, database=database, table=table)
-        sql, safe = self._create_sql_query(method=INSERT,
+        sql, safe = self._create_sql_query(method=DBEnums.INSERT,
                                             table=table,
                                             fields=fields,
                                             data=values)
@@ -295,7 +291,7 @@ class SqliteInterface(DBInterface):
 
     def update(self, data, filter=None, database=None, table=None):
         filter, database, table, fields, values = super().update(data, filter=filter, database=database, table=table)
-        sql, safe = self._create_sql_query(method=UPDATE,
+        sql, safe = self._create_sql_query(method=DBEnums.UPDATE,
                                             table=table,
                                             fields=fields,
                                             data=values,
@@ -305,7 +301,7 @@ class SqliteInterface(DBInterface):
 
     def delete(self, **kwargs):
         filter, database, table = super().delete(**kwargs)
-        sql, safe = self._create_sql_query(method=DELETE,
+        sql, safe = self._create_sql_query(method=DBEnums.DELETE,
                                             table=table,
                                             filter=filter)
         self.cursor.execute(sql, safe)
@@ -317,7 +313,7 @@ class SqliteInterface(DBInterface):
         Changes name of table
         """
         table, new_name = super().alter_table_rename_table(new_name, table=table)
-        sql, safe = self._create_sql_query(method=ALTER_TABLE_RENAME_TABLE,
+        sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_RENAME_TABLE,
                                             table=table,
                                             data=[new_name])
         self.cursor.execute(sql, safe)
@@ -328,7 +324,7 @@ class SqliteInterface(DBInterface):
         Changes name of column is specified table table
         """
         table, column, new_name = super().alter_table_rename_column(column, new_name, table=table)
-        sql, safe = self._create_sql_query(method=ALTER_TABLE_RENAME_COLUMN,
+        sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_RENAME_COLUMN,
                                             table=table,
                                             fields=[column],
                                             data=[new_name])
@@ -340,7 +336,7 @@ class SqliteInterface(DBInterface):
         Adds new column in specified table table
         """
         table, column, column_type = super().alter_table_add_column(column, column_type, table=table)
-        sql, safe = self._create_sql_query(method=ALTER_TABLE_ADD_COLUMN,
+        sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_ADD_COLUMN,
                                             table=table,
                                             fields=[column],
                                             data=[column_type])
@@ -378,14 +374,14 @@ class SqliteInterface(DBInterface):
 
     #Get SCHEMA
     def get_schema(self, table=None):
-        schema = {"primary key": PRIMARY,
+        schema = {"primary key": DBEnums.PRIMARY,
                   "text": str,
                   "integer": int,
                   "real": float,
                   "blob": object,
                   "null": None}
         table = super().get_schema(table=table)
-        sql, safe = self._create_sql_query(method=GET_SCHEMA,
+        sql, safe = self._create_sql_query(method=DBEnums.GET_SCHEMA,
                                             table=table)
         self.cursor.execute(sql, safe)
         data = RE.findall(self.cursor.fetchone()["sql"])[1:]
@@ -399,7 +395,7 @@ class SqliteInterface(DBInterface):
             prim = []
             data[key] = data[key].lower()
             if "primary key" in data[key]:
-                prim.append(PRIMARY)
+                prim.append(DBEnums.PRIMARY)
                 data[key] = data[key].replace(" primary key", "").strip()
             items = data[key].split(" ")
             for item in items:
@@ -411,11 +407,11 @@ class SqliteInterface(DBInterface):
 
     def create_table_as_another(self, new_table, filter=None, database=None, table=None, fields=None, exists=True):
         filter, database, table, fields = super().select(filter=filter, database=database, table=table, fields=fields)
-        sql, safe = self._create_sql_query(method=SELECT,
+        sql, safe = self._create_sql_query(method=DBEnums.SELECT,
                                            table=table,
                                            fields=fields,
                                            filter=filter)
-        sql_new, safe_new = self._create_sql_query(method=CREATE_TABLE_AS_ANOTHER,
+        sql_new, safe_new = self._create_sql_query(method=DBEnums.CREATE_TABLE_AS_ANOTHER,
                                                    table=new_table,
                                                    exists=exists)
         sql = " AS ".join((sql_new, sql))

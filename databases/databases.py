@@ -1,19 +1,22 @@
 # databases.py
 
-SELECT = "SELECT"
-INSERT = "INSERT"
-UPDATE = "UPDATE"
-DELETE = "DELETE"
-CREATE_TABLE = "CREATE TABLE"
-DROP_TABLE = "DROP TABLE"
-ALTER_TABLE_ADD_COLUMN = "ALTER TABLE ADD COLUMN"
-ALTER_TABLE_DROP_COLUMN = "ALTER TABLE DROP COLUMN"
-ALTER_TABLE_RENAME_TABLE = "ALTER TABLE RENAME TABLE"
-ALTER_TABLE_RENAME_COLUMN = "ALTER TABLE RENAME COLUMN"
-ALTER_TABLE_MODIFY_COLUMN = "ALTER TABLE MODIFY COLUMN"
-GET_SCHEMA = "GET SCHEMA"
+from enum import Enum, auto
 
-PRIMARY = "PRIMARY"
+class DBEnums(Enum):
+    SELECT = auto()
+    INSERT = auto()
+    UPDATE = auto()
+    DELETE = auto()
+    CREATE_TABLE = auto()
+    DROP_TABLE = auto()
+    ALTER_TABLE_ADD_COLUMN = auto()
+    ALTER_TABLE_DROP_COLUMN = auto()
+    ALTER_TABLE_RENAME_TABLE = auto()
+    ALTER_TABLE_RENAME_COLUMN = auto()
+    ALTER_TABLE_MODIFY_COLUMN = auto()
+    GET_SCHEMA = auto()
+    PRIMARY = auto()
+    CREATE_TABLE_AS_ANOTHER = auto()
 
 class Data(list): #not checked datatypes
     def __init__(self, data):
@@ -22,7 +25,7 @@ class Data(list): #not checked datatypes
         super().__init__(data)
 
 class DBInterface:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, database="", server="localhost", user="", password="", encription=""):
         """
         Initializes DB Interface
         KWARGS:
@@ -32,19 +35,11 @@ class DBInterface:
             password -> password to access server
             encription -> if encription is needed
         """
-        self._database, self._user, self._password, self._encription = [""]*4
-        if "database" in kwargs:
-            self._database = kwargs["database"]
-        if "server" in kwargs:
-            self._server = kwargs["server"]
-        else:
-            self._server = "localhost"
-        if "user" in kwargs:
-            self._user = kwargs["user"]
-        if "password" in kwargs:
-            self._password = kwargs["password"]
-        if "encription" in kwargs:
-            self._encription = kwargs["encription"]
+        self._database = database
+        self._server = server
+        self._user = user
+        self._password = password
+        self._encription = encription
         self._table = ""
         self._filter = {}
 
@@ -80,7 +75,7 @@ class DBInterface:
     def sql_dict(self):
         return {"table": self.table,
                 "filter": self.filter,
-                "method": SELECT,
+                "method": DBEnums.SELECT,
                 "fields": [],
                 "data": [],
                 "exists":True
@@ -257,5 +252,5 @@ class DBInterface:
             table = self.table
         schema = self.get_schema(table=table)
         for item in schema:
-            if isinstance(schema[item], list) and PRIMARY in schema[item]:
+            if isinstance(schema[item], list) and DBEnums.PRIMARY in schema[item]:
                 return item
