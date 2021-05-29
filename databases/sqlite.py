@@ -370,8 +370,9 @@ class SqliteInterface(DBInterface):
         schema[column] = column_type
         temp_table = "_temp_"+table
         self.create_table(temp_table, fields=list(schema.keys()), data=list(schema.values()))
-        data = self.select(table=table)
-        self.insert(data, table=temp_table)
+        sql = f"INSERT into {temp_table} SELECT * FROM {table}"
+        self.conn.execute(sql)
+        self.conn.commit()
         self.drop_table(table=table)
         self.alter_table_rename_table(table, table=temp_table)
 
