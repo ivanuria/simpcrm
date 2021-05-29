@@ -7,7 +7,7 @@ import unittest
 from databases.sqlite import SqliteInterface as SQLite, MEMORY
 from databases.databases import Data, SELECT, INSERT, UPDATE, DELETE, CREATE_TABLE, DROP_TABLE
 from entities.defaults import get_entity, get_entities, persistent, install_persistency
-from entities.entities import Entity, TIMEOUT
+from entities.entities import Entity, TIMEOUT, set_timeout
 from entities.fields import Field, Fields
 from sqlite3 import Error
 import threading
@@ -146,6 +146,7 @@ class v1_Item(unittest.TestCase):
         self.thread = threading.Thread(target=self.loop.run_forever)
         self.thread.start()
         self.hola, self.adios = self.entity[1:2]
+        set_timeout(1)
 
     def tearDown(self):
         self.db.disconnect()
@@ -181,6 +182,21 @@ class v1_Item(unittest.TestCase):
         self.entity.replace({"id": 1}, {"foo": "jurl jurl jurl"})
         time.sleep(TIMEOUT+2)
         self.assertEqual(self.hola, {"id": 1, "foo": "jurl jurl jurl", "bar": 10})
+
+    def test_item_handlers(self):
+        self.x = None
+        def handler(x, self=self):
+            self.x = x
+        self.hola.set_handler("foo", handler)
+        self.entity.replace({"id": 1}, {"foo": "jurl jurl jurl"})
+        time.sleep(TIMEOUT+2)
+        self.assertEqual(self.x, "jurl jurl jurl")
+        def testing(new, self=self):
+            x = self.hola.changed_handler("foo")
+            x(new)
+        testing("nana")
+        self.assertEqual(self.hola, {"id": 1, "foo": "nana", "bar": 10})
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 TIMEOUT = 10
 LIFETIME = 600
 
+def set_timeout(timeout):
+    TIMEOUT = timeout
+
 class Item(dict):
     persistent = defaultdict(dict)
     def __new__(cls, entity, data={}, loop=None):
@@ -29,7 +32,7 @@ class Item(dict):
         self._loop = loop
         self._loop_update()
         self._handler = None
-        self._server_changed_handlers = None
+        self._server_changed_handlers = defaultdict(list)
 
     def __del__(self):
         self.close()
@@ -69,6 +72,13 @@ class Item(dict):
     def changed_handler(self, key):
         return lambda x, key=key: self.__setitem__(key, x)
 
+    def set_handler(self, field, handler):
+        self._server_changed_handlers[field].append(handler)
+
+    def remove_handler(self, field, handler):
+        if handler in self._server_changed_handlers[field]:
+            del(self._server_changed_handlers[field][self._server_changed_handlers[field].index(handler)])
+
     def close(self):
         if self._handler is not None:
             self._handler.cancel()
@@ -77,10 +87,12 @@ class Item(dict):
     def update_data(self, data):
         #TODO: Any verification if needed
         self.update(data)
-        if self._server_changed_handlers is not None and isinstance(self._server_changed_handlers, dict):
+        if self._server_changed_handlers and isinstance(self._server_changed_handlers, dict):
             for key in self.entity.fields:
-                if key in self.self._server_changed_handlers and key in data:
-                    self.self._server_changed_handlers[key](data[key])
+                if key in self._server_changed_handlers and key in data and isinstance(self._server_changed_handlers[key], list):
+                    for handler in self._server_changed_handlers[key]:
+                        if callable(handler) is True:
+                            handler(data[key])
 
 
 
