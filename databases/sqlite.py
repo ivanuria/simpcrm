@@ -5,6 +5,7 @@ from databases.databases import Data, DBInterface, DBEnums
 from collections import defaultdict, OrderedDict
 import re
 import threading
+import datetime
 
 MEMORY = ":memory:"
 RE = re.compile(r"[a-zA-Z0-9 ]+")
@@ -90,7 +91,10 @@ class SqliteInterface(DBInterface):
                                 int: "INTEGER",
                                 float: "REAL",
                                 None: "NULL",
-                                object: "BLOB"})
+                                object: "BLOB",
+                                datetime.datetime: "timestamp",
+                                datetime.date: "date",
+                                datetime.timedelta: "timestamp"})
             for index, item in enumerate(pairs):
                 if not isinstance(item[1], list) and not isinstance(item[1], tuple):
                     pairs[index] = [item[0], [item[1]]]
@@ -222,7 +226,7 @@ class SqliteInterface(DBInterface):
     # Connection Methods
 
     def connect(self):
-        self._conn[threading.currentThread()] = sqlite3.connect(self._server)
+        self._conn[threading.currentThread()] = sqlite3.connect(self._server, , detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self._conn[threading.currentThread()].row_factory = dict_factory
         self._cursor[threading.currentThread()] = self._conn[threading.currentThread()].cursor()
 
