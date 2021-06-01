@@ -108,7 +108,7 @@ class Entity:
                 if not "parent_field":
                     parent_field = parent+"_id"
                     if not parent_field in fields:
-                        fields[parent_field] = parent.primary_key.definition
+                        fields[parent_field] = {"definition": parent.primary_key.definition}
             else:
                 raise AttributeError("Parent must be previously defined")
         if ":" in name:
@@ -131,6 +131,18 @@ class Entity:
             return super().__new__(cls)
 
     def __init__(self, database, table, name, fields, description, parent="", parent_field="", loop=None):
+        if ":" in table:
+            parent, table = table.split(":")[-2:]
+            if parent in cls.persistent[database]:
+                parent = cls.persistent[database][parent]
+                if not "parent_field":
+                    parent_field = parent+"_id"
+                    if not parent_field in fields:
+                        fields[parent_field] = {"definition": parent.primary_key.definition}
+            else:
+                raise AttributeError("Parent must be previously defined")
+        if ":" in name:
+            name = name.split(":")[-1]
         assert isinstance(database, DBInterface)
         assert isinstance(fields, dict)
         self._name = name
