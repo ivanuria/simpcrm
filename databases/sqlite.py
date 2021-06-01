@@ -93,8 +93,7 @@ class SqliteInterface(DBInterface):
                                 None: "NULL",
                                 object: "BLOB",
                                 datetime.datetime: "timestamp",
-                                datetime.date: "date",
-                                datetime.timedelta: "timestamp"})
+                                datetime.date: "date"})
             for index, item in enumerate(pairs):
                 if not isinstance(item[1], list) and not isinstance(item[1], tuple):
                     pairs[index] = [item[0], [item[1]]]
@@ -226,7 +225,7 @@ class SqliteInterface(DBInterface):
     # Connection Methods
 
     def connect(self):
-        self._conn[threading.currentThread()] = sqlite3.connect(self._server, , detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        self._conn[threading.currentThread()] = sqlite3.connect(self._server, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self._conn[threading.currentThread()].row_factory = dict_factory
         self._cursor[threading.currentThread()] = self._conn[threading.currentThread()].cursor()
 
@@ -281,7 +280,7 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         return Data(self.cursor.fetchall())
 
-    def insert(self, data, database=None, table=None):
+    def insert(self, data, table=None, database=None):
         database, table, fields, values = super().insert(data, database=database, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.INSERT,
                                             table=table,
@@ -293,7 +292,7 @@ class SqliteInterface(DBInterface):
             self.cursor.executemany(sql, safe)
         self.conn.commit()
 
-    def update(self, data, filter=None, database=None, table=None):
+    def update(self, data, table=None, filter=None, database=None):
         filter, database, table, fields, values = super().update(data, filter=filter, database=database, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.UPDATE,
                                             table=table,

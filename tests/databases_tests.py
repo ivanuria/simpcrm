@@ -7,6 +7,7 @@ import unittest
 from databases.sqlite import SqliteInterface as SQLite, MEMORY
 from databases.databases import Data, DBEnums
 from sqlite3 import Error
+from datetime import date, datetime, timedelta
 
 class v1_Databases_sqlite(unittest.TestCase):
     def setUp(self):
@@ -224,6 +225,18 @@ class v1_Databases_sqlite(unittest.TestCase):
 
     def test_get_primary_key(self):
         self.assertEqual(self.db.get_primary_key("customers"), "id")
+
+    def test_value_type(self):
+        now = datetime.now()
+        dat = date.today()
+        delta = datetime.now()-now
+        self.db.create_table("test", {"str": str, "int": int, "float": float,
+                             "datetime": datetime, "date": date})
+        self.db.insert({"str": "hola", "int": 1, "float": 1.5,
+                        "datetime": now, "date": dat}, "test")
+        self.assertEqual(self.db.select(table="test"),
+                         [{"id": 1, "str": "hola", "int": 1, "float": 1.5,
+                          "datetime": now, "date": dat}])
 
 if __name__ == '__main__':
     unittest.main()
