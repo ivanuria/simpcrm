@@ -37,9 +37,12 @@ def get_entity(database, table, ent=None):
     fields = Fields(database, table, [Field(database, table, item["name"], eval(item["definition"]), description=item["description"]) for item in flst])
     fields.set_installed()
     if ent is None:
-        ent = entity.get({"table_name": table})[0] #TODO: raise especial exception if not exists
-    return Entity(database, ent["table_name"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"])
-
+        ent = entity.get({"table_name": table})[0]
+    if ent:#TODO: raise especial exception if not exists
+        return Entity(database, ent["table_name"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"])
+    else:
+        return None
+        
 def get_entities(database):
     entity, fields_entity = persistent(database)
     entities_list = entity.get({})

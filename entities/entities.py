@@ -101,6 +101,18 @@ class Entity:
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
     def __new__(cls, database, table, name, fields, description, parent="", parent_field="", loop=None):
+        if ":" in table:
+            parent, table = table.split(":")[-2:]
+            if parent in cls.persistent[database]:
+                parent = cls.persistent[database][parent]
+                if not "parent_field":
+                    parent_field = parent+"_id"
+                    if not parent_field in fields:
+                        fields[parent_field] = parent.primary_key.definition
+            else:
+                raise AttributeError("Parent must be previously defined")
+        if ":" in name:
+            name = name.split(":")[-1]
         if table in cls.persistent[database]:
             self = cls.persistent[database][table]
             if any([name!=self.name,
@@ -121,7 +133,6 @@ class Entity:
     def __init__(self, database, table, name, fields, description, parent="", parent_field="", loop=None):
         assert isinstance(database, DBInterface)
         assert isinstance(fields, dict)
-        self.persistent[database][table] = self
         self._name = name
         self._table = table
         self.description = description
@@ -137,6 +148,7 @@ class Entity:
         self._children = []
         self._primary_key = None
         self._loop = loop
+        self.persistent[database][self.table] = self
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -184,7 +196,7 @@ class Entity:
 
     @property
     def table(self):
-        return self._table
+        return self._table.split(":")[-1]
 
     @property
     def primary_key(self):
