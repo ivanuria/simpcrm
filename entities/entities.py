@@ -171,12 +171,22 @@ class Entity:
             else:
                 raise TypeError(f"Only int and string in the first field allowed, {type(key.start)}")
             return [Item(self, item, loop=self._loop) for item in data]
-        elif isinstance(key, int):
+        elif isinstance(key, (int, str)):
             item = self.get({self.primary_key: key})
             if item:
                 return [Item(self, item[0], loop=self._loop)]
         else:
             raise TypeError("Only int and slice alloed")
+
+    def __setitem__(self, key, values):
+        if isinstance(key, (int, str)):
+            item = self.get({self.primary_key: key})
+            if item:
+                item = Item(self, item[0], loop=self._loop)
+                item.update_data(values)
+            else:
+                values.update({self.primary_key: key})
+                self.insert(values)
 
     def __del__(self):
         self.close()
