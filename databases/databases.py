@@ -85,13 +85,13 @@ class DBInterface:
         """
         connects to database
         """
-        pass
+        raise NotImplementedError
 
     def disconnect(self):
         """
         disconnects database
         """
-        pass
+        raise NotImplementedError
 
     def set_database(self, database):
         """
