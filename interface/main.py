@@ -5,6 +5,7 @@ from entities.default import install_persistency, get_entity, get_entities
 from database import DBInterface, new_db_interface, DBEnums
 from configparser import ConfigParser
 from datetime import datetime
+from functools import wraps
 
 VERSION = "0.1"
 
@@ -16,12 +17,13 @@ DEFINITIONS = {"__users": {"id": [str, DBENums.PRIMARY],
                            "expires_at": datetime,
                            "roles": str},
                "__roles": {"id": [str, DBEnums.PRIMARY],
-                           "description": str},
+                           "description": str,
+                           "parent": str},
                "__roles:__permissions": {"id": [int, DBEnums.PRIMARY],
                                          "entity": str,
                                          "operation": str,
                                          "permitted": bool,
-                                         "__roles_id": int},
+                                         "__roles_id": str},
                "__simpcrm_main": {"id": [int, DBEnums.PRIMARY],
                                   "installed": datetime,
                                   "version": str,
@@ -35,6 +37,8 @@ DEFAULT_ROLES = [{"id": "admin",
                  {"id": "user",
                   "name": "Usuario",
                   "desctiption": "Usuario del sistema"}]
+
+EXPIRE_TOKEN = 3600
 
 class Main:
     def __init__(self, configdbfile="config\databases.ini"):
@@ -81,6 +85,38 @@ class Main:
         else:
             return True
 
+    #Decorator for user permissions:
+    def only_permitted(table=None, operation="r"):
+        def only_permitted_decorator(func):
+            @wraps(func)
+            def only_permitted_wrapper(self, *args, **kwargs):
+                if self.installed is False:
+                    raise RuntimeError("Not installed yet")
+                if all([i in kwargs for i in ["user", "token"]]):
+                    user, token = kwargs["user"], kwargs["token"]
+                    if table is None and not "table" in kwargs:
+                        raise AttributeError("Table not found")
+                    else:
+                        table = kwargs["table"]
+                    map(del, [kwargs["user"], kwargs["token"]])
+                    user = self.entities["__users"][user]
+                    if user["token"] != token or user["expires_at"] < datetime.datetime.now():
+                        raise RuntimeError("Unauthorised: may login again")
+                    else:
+                        roles = user["roles"].split(" ")
+                        authorising = self.entities.get({"entity": table,
+                                                         "operation": operation,
+                                                         "__roles_id": ["IN", roles]})
+
+                    if any([k["permitted"] for k in authorising]):
+                        return func(self, *args, **kwargs)
+                    else:
+                        raise RuntimeError("Unauthorised")
+                else:
+                    raise AttributeError("You may be an identified user")
+
+        return only_permitted_wrapper
+
     def install(self, user, name, password_hash):
         install_persistency(self.database)
         for table in DEFINITIONS:
@@ -94,7 +130,7 @@ class Main:
         permissions = []
         for role, perm in (("admin", True), ("user", False)):
             for ent in ["__users", "__permissions", "__simpcrm_main"]:
-                for op in ["read", "write", "delete"]:
+                for op in ["r", "w", "d"]: #r=read, w=write, d=delete
                     permissions.append({"__roles_id": role, "entity": ent, "operation": op, "permitted": perm})
         self.entities["__simpcrm_main"].insert({"installed": datetime.now(),
                                                 "version": VERSION,
