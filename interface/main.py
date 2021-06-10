@@ -40,6 +40,37 @@ DEFAULT_ROLES = [{"id": "admin",
 
 EXPIRE_TOKEN = 3600
 
+#Decorator for user permissions:
+def only_permitted(table=None, operation="r"):
+    def only_permitted_decorator(func):
+        @wraps(func)
+        def only_permitted_wrapper(self, *args, **kwargs):
+            if self.installed is False:
+                raise RuntimeError("Not installed yet")
+            if all([i in kwargs for i in ["user", "token"]]):
+                user, token = kwargs["user"], kwargs["token"]
+                if table is None and not "table" in kwargs:
+                    raise AttributeError("Table not found")
+                else:
+                    table = kwargs["table"]
+                map(del, [kwargs["user"], kwargs["token"]])
+                user = self.entities["__users"][user]
+                if user["token"] != token or user["expires_at"] < datetime.datetime.now():
+                    raise RuntimeError("Unauthorised: may login again")
+                else:
+                    roles = user["roles"].split(" ")
+                    authorising = self.entities.get({"entity": table,
+                                                     "operation": operation,
+                                                     "__roles_id": ["IN", roles]})
+
+                if any([k["permitted"] for k in authorising]):
+                    return func(self, *args, **kwargs)
+                else:
+                    raise RuntimeError("Unauthorised")
+            else:
+                raise AttributeError("You may be an identified user")
+    return only_permitted_wrapper
+
 class Main:
     def __init__(self, configdbfile="config\databases.ini"):
         """
@@ -85,38 +116,6 @@ class Main:
         else:
             return True
 
-    #Decorator for user permissions:
-    def only_permitted(table=None, operation="r"):
-        def only_permitted_decorator(func):
-            @wraps(func)
-            def only_permitted_wrapper(self, *args, **kwargs):
-                if self.installed is False:
-                    raise RuntimeError("Not installed yet")
-                if all([i in kwargs for i in ["user", "token"]]):
-                    user, token = kwargs["user"], kwargs["token"]
-                    if table is None and not "table" in kwargs:
-                        raise AttributeError("Table not found")
-                    else:
-                        table = kwargs["table"]
-                    map(del, [kwargs["user"], kwargs["token"]])
-                    user = self.entities["__users"][user]
-                    if user["token"] != token or user["expires_at"] < datetime.datetime.now():
-                        raise RuntimeError("Unauthorised: may login again")
-                    else:
-                        roles = user["roles"].split(" ")
-                        authorising = self.entities.get({"entity": table,
-                                                         "operation": operation,
-                                                         "__roles_id": ["IN", roles]})
-
-                    if any([k["permitted"] for k in authorising]):
-                        return func(self, *args, **kwargs)
-                    else:
-                        raise RuntimeError("Unauthorised")
-                else:
-                    raise AttributeError("You may be an identified user")
-
-        return only_permitted_wrapper
-
     def install(self, user, name, password_hash):
         install_persistency(self.database)
         for table in DEFINITIONS:
@@ -139,3 +138,20 @@ class Main:
 
     def load(self):
         self.entities = get_entities(self.database)
+
+    # USERS
+    @only_permitted(table="__users", operation="w")
+    def new_user(self, new_user, name, password_hash, roles):
+        self.entities["__users"][new_user] = {"id": new_user,
+                                              "name": name,
+                                              "pwdhash": password_hash,
+                                              "roles": roles}
+
+    @only_permitted(table="__users", operation="w")
+    def modify_user(self, new_user, name, password_hash, roles):
+        # same as new_user just for readability
+        self.new_user(new_user, name, password_hash, roles)
+
+    @only_permitted(table="__users", operation="w")
+    def delete_user(self, user_id):
+        self.entities["__users"].delete({self.entities["__users"].primary_key: user_id})
