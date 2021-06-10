@@ -56,20 +56,32 @@ class SqliteInterface(DBInterface):
                 filter[key] = [filter[key]]
             for item in filter[key]:
                 if (isinstance(item[0], str) and
-                    item[0].upper() in ("=", "!=", "<=", ">=", "<", ">", "LIKE")):
+                    item[0].upper() in ("=", "!=", "<=", ">=", "<", ">", "LIKE", "IN")):
                     if item[0].upper() == "LIKE":
                         item[0] = " LIKE "
+                    if item[0].upper() == "IN":
+                        item[0] = " IN "
                     keys.append(key)
                     values.append(item)
                 else:
                     raise Exception("Operation not allowed (yet)")
         #keys = list(filter.keys())
+        safe = {}
+        f = []
+        for i, key in enumerate(keys):
+            if values[i][0] == " IN " and isinstance(values[i][1], (list, tuple)):
+                to_f = []
+                for k, v in enumerate(values[i][1]):
+                    dakey = ":filter"+key+"value"+str(i)+"in"+str(k)
+                    to_f.append(dakey)
+                    safe[dakey] = values[i][1][k]
+                f.append("("+", ".join(to_f)+")")
+            else:
+                f.append(":filter"+key+"value"+str(i))
+                safe["filter"+key+"value"+str(i)] = values[i][1]
         string = " and ".join([key+values[i][0]+":filter"+key+"value"+str(i) for i, key in enumerate(keys)])
         string = "WHERE {}".format(string)
-        safe = {}
-        for i,key in enumerate(keys):
-            #safe["filter"+key+"value"+str(i)] = filter[key][1]
-            safe["filter"+key+"value"+str(i)] = values[i][1]
+
         return string, safe
 
     @classmethod
