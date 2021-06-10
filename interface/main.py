@@ -59,9 +59,9 @@ def only_permitted(table=None, operation="r"):
                     raise RuntimeError("Unauthorised: may login again")
                 else:
                     roles = user["roles"].split(" ")
-                    authorising = self.entities.get({"entity": table,
-                                                     "operation": operation,
-                                                     "__roles_id": ["IN", roles]})
+                    authorising = self.entities["__permissions"].get({"entity": table,
+                                                                      "operation": operation,
+                                                                      "__roles_id": ["IN", roles]})
 
                 if any([k["permitted"] for k in authorising]):
                     return func(self, *args, **kwargs)
@@ -139,6 +139,7 @@ class Main:
     def load(self):
         self.entities = get_entities(self.database)
 
+
     # USERS
     @only_permitted(table="__users", operation="w")
     def new_user(self, new_user, name, password_hash, roles):
@@ -155,3 +156,12 @@ class Main:
     @only_permitted(table="__users", operation="w")
     def delete_user(self, user_id):
         self.entities["__users"].delete({self.entities["__users"].primary_key: user_id})
+
+
+    # ROLES and permissions
+    @only_permitted(table="__permissions", operation="r")
+    def get_user_permissions(self, user_id):
+        self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]})
+
+    @only_permitted(table="__permissions", operation="w")
+    def new_role(self, new_user, name, password_hash, roles):
