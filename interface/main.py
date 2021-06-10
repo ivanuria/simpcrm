@@ -53,7 +53,7 @@ def only_permitted(table=None, operation="r"):
                     raise AttributeError("Table not found")
                 else:
                     table = kwargs["table"]
-                map(del, [kwargs["user"], kwargs["token"]])
+                #map(del, [kwargs["user"], kwargs["token"]])
                 user = self.entities["__users"][user]
                 if user["token"] != token or user["expires_at"] < datetime.datetime.now():
                     raise RuntimeError("Unauthorised: may login again")
@@ -141,27 +141,31 @@ class Main:
 
 
     # USERS
-    @only_permitted(table="__users", operation="w")
+    @only_permitted(table="__users", operation="w", **kwargs)
     def new_user(self, new_user, name, password_hash, roles):
         self.entities["__users"][new_user] = {"id": new_user,
                                               "name": name,
                                               "pwdhash": password_hash,
                                               "roles": roles}
 
-    @only_permitted(table="__users", operation="w")
+    @only_permitted(table="__users", operation="w", **kwargs)
     def modify_user(self, new_user, name, password_hash, roles):
         # same as new_user just for readability
         self.new_user(new_user, name, password_hash, roles)
 
-    @only_permitted(table="__users", operation="w")
+    @only_permitted(table="__users", operation="w, **kwargs")
     def delete_user(self, user_id):
         self.entities["__users"].delete({self.entities["__users"].primary_key: user_id})
 
 
     # ROLES and permissions
-    @only_permitted(table="__permissions", operation="r")
+    @only_permitted(table="__permissions", operation="r", **kwargs)
     def get_user_permissions(self, user_id):
-        self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]})
+        permissions = defaultdict(lambda: defaultdict(False)) # Entity[operation]
+        for perm in self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]}):
+            if perm["permitted"] is True:
+                permission[perm["entity"]][[perm["operation"]] = perm["permitted"]
 
-    @only_permitted(table="__permissions", operation="w")
-    def new_role(self, new_user, name, password_hash, roles):
+    @only_permitted(table="__permissions", operation="w", **kwargs)
+    def new_role(self, role_id, description, parent, permissions):
+        pass #TODO
