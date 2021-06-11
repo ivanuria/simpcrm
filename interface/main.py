@@ -278,3 +278,28 @@ class Main:
             raise RuntimeError("Operation not permitted")
         else:
             self.entities["__permissions"].delete({"id": role_id})
+
+    # Entities creation
+    @only_permitted(table="__entities", operation="w")
+    def new_entity(self, entity_id, name, fields, description, parent, parent_field, *, user, token):
+        if entity_id in self.entities:
+            raise RuntimeError("Entity already defined")
+        elif entity_id.startswith("__"):
+            raise RuntimeError("Entity Id not supported")
+        else:
+            assert all([key in fields for key in ["name", "definition", "description", "table_name"]])
+            self.entities[entity] = Entity(self._database, entity_id, name, fields, description)
+            self.entities[entity].install()
+
+    @only_permitted(operation="w")
+    def modify_entity(self, entity_id, name, fields, description, parent, parent_field, *, user, token):
+        if entity_id.startswith("__"):
+            raise RuntimeError("Entity Id not supported")
+        elif entity_id in self.entities:
+            to_change = []
+            for field in fields:
+                assert all([key in field for key in ["name", "definition", "description", "table_name"]])
+                if "new_definition"
+            self.entities[entity] = Entity(self._database, entity_id, name, fields, description)
+        else:
+            self.new_entity(entity_id, name, fields, description, parent, parent_field, User=user, token=token)
