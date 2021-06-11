@@ -282,10 +282,12 @@ class Entity:
         assert isinstance(database, DBInterface)
         self._database = database
 
-    def change_field(self, field_id, *, new_field_id=None, new_definition=None):
+    def change_field(self, field_id, *, new_field_id=None, new_definition=None, new_description=None):
         if (new_field_id is not None or new_definition is not None) and field_id in self.fields:
             if new_definition is not None and self.fields[field_id].definition != definition:
                 self.fields[field_id] = new_definition
+            if new_description is not None and self.fields[field_id].description != new_description:
+                self.fields.decription = new_description
             if new_field_id is not None and new_field_id != field_id:
                 self.fields[field_id].change_name(new_field_id)
 
