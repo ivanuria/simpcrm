@@ -288,8 +288,8 @@ class Main:
             raise RuntimeError("Entity Id not supported")
         else:
             assert all([key in fields for key in ["name", "definition", "description", "table_name"]])
-            self.entities[entity] = Entity(self._database, entity_id, name, fields, description)
-            self.entities[entity].install()
+            self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description)
+            self.entities[entity_id].install()
 
     @only_permitted(operation="w")
     def modify_entity(self, entity_id, name, fields, description, parent, parent_field, *, user, token):
@@ -297,9 +297,17 @@ class Main:
             raise RuntimeError("Entity Id not supported")
         elif entity_id in self.entities:
             to_change = []
+            to_add = []
             for field in fields:
                 assert all([key in field for key in ["name", "definition", "description", "table_name"]])
-                if "new_definition"
-            self.entities[entity] = Entity(self._database, entity_id, name, fields, description)
+                if any([key in field for key in ["new_definition", "new_name", "new_description"]]):
+                    to_change.append(field)
+                if item["name"] not in self.entities[entity_id].fields:
+                    to_add.append(item)
+            if to_change:
+                self.entities[entity_id].change_fields(to_change) # Safaty first even if it makes this slower
+            if to_add:
+                self.entities[entity_id].add_fields(to_add)
+            self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description)
         else:
             self.new_entity(entity_id, name, fields, description, parent, parent_field, User=user, token=token)
