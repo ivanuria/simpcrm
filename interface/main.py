@@ -146,6 +146,19 @@ class Main:
         else:
             return True
 
+    def get_role_children(self, role_id):
+        roles = self.entity["__roles"].get()
+        final_roles = [role_id]
+        while True: #supposedly not a lot of roles and only used by few users
+            added = False
+            for role in roles:
+                if role["parent"] in final_roles:
+                    final_roles.append(role["id"])
+                    added = True
+            if added is False:
+                break
+        return final_roles
+
     # USERS
     @only_permitted(table="__users", operation="w")
     def new_user(self, new_user, name, password_hash, roles, **kwargs):
