@@ -281,3 +281,20 @@ class Entity:
     def set_database(self, database):
         assert isinstance(database, DBInterface)
         self._database = database
+
+    def change_field(self, field_id, *, new_field_id=None, new_definition=None):
+        if (new_field_id is not None or new_definition is not None) and field_id in self.fields:
+            if new_definition is not None and self.fields[field_id].definition != definition:
+                self.fields[field_id] = new_definition
+            if new_field_id is not None and new_field_id != field_id:
+                self.fields[field_id].change_name(new_field_id)
+
+    def change_fields(self, fields):
+        if isinstance(fields, (list, tuple)):
+            for item in fields:
+                if isinstance(item, dict):
+                    if "new_definition" in item:
+                        new_definition = item["new_definition"]
+                    if all([key in item for key in ["name", "new_name"]]):
+                        new_field_id = item["new_name"]
+                    self.change_field(item["name"], new_definition=new_definition, new_field_id=new_field_id)
