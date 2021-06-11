@@ -268,3 +268,13 @@ class Main:
                                                        "operation": permitted_changes[perm]["operation"],
                                                        "permitted": permitted_changes[perm]["permitted"],,
                                                        "__roles_id": role_id})
+
+    @only_permitted(table="__permissions", operation="w")
+    def delete_role(self, role_id):
+        if role_id == "admin":
+            raise RuntimeError("Operation not permitted") # TODO: Make another exception
+        permitted_changes = self.get_permmited_permissions_changes(user, permissions)
+        if role_id not in permitted_changes:
+            raise RuntimeError("Operation not permitted")
+        else:
+            self.entities["__permissions"].delete({"id": role_id})
