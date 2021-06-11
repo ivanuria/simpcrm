@@ -196,9 +196,16 @@ class Main:
             # Modify a non existing user should create it, why not?
 
     @only_permitted(table="__users", operation="w")
-    def delete_user(self, user_id, **kwargs):
-        self.entities["__users"].delete({self.entities["__users"].primary_key: user_id})
-
+    def delete_user(self, user_id, *, user, token):
+        roles = self.check_permitted_roles(user, roles)
+        if self.entities["__users"][new_user]:
+            user_roles = self.entities["__users"][new_user].split(" ")
+            if any([role in user_roles for role in roles]):
+                self.entities["__users"].delete({self.entities["__users"].primary_key: user_id})
+            else:
+                raise RuntimeError("Operation not permmited")
+        else:
+            raise RuntimeError("User not found")
 
     # ROLES and permissions
     @only_permitted(table="__permissions", operation="r")
