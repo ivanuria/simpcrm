@@ -149,15 +149,17 @@ class Main:
     # USERS
     @only_permitted(table="__users", operation="w")
     def new_user(self, new_user, name, password_hash, roles, **kwargs):
-        self.entities["__users"][new_user] = {"id": new_user,
-                                              "name": name,
-                                              "pwdhash": password_hash,
-                                              "roles": roles}
+        if not self.entities["__users"][new_user]:
+            self.entities["__users"][new_user] = {"id": new_user,
+                                                  "name": name,
+                                                  "pwdhash": password_hash,
+                                                  "roles": roles}
+        else:
+            raise RuntimeError("User already exists")
 
     @only_permitted(table="__users", operation="w")
     def modify_user(self, new_user, name, password_hash, roles, **kwargs):
-        # same as new_user just for readability
-        self.new_user(new_user, name, password_hash, roles)
+        pass
 
     @only_permitted(table="__users", operation="w")
     def delete_user(self, user_id, **kwargs):
