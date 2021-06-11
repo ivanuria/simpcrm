@@ -164,11 +164,12 @@ class Main:
     def check_permitted_roles(self, user, roles):
         if isinstance(roles, str):
             roles = roles.split(" ")
-        n_roles = list(roles)
-        accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"])
+        l_roles = list(roles)
+        n_roles = []
+        accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"]).split(" ")
         final_roles = []
-        for role in list(n_roles):
-            if role in accepted_roles:
+        for role in accepted_roles:
+            if role in l_roles+n_roles:
                 final_roles.append(role)
         return final_roles
 
