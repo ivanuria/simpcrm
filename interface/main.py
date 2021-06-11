@@ -138,7 +138,6 @@ class Main:
     def load(self):
         self.entities = get_entities(self.database)
 
-
     def logged(self, user, token):
         user = self.entities["__users"][user]
         if user["token"] != token or user["expires_at"] < datetime.datetime.now():
@@ -148,7 +147,9 @@ class Main:
 
     def get_role_children(self, role_id):
         roles = self.entity["__roles"].get()
-        final_roles = [role_id]
+        if isinstance(role_id, str):
+            role_id = role_id.split(" ")
+        final_roles = list(role_id)
         while True: #supposedly not a lot of roles and only used by few users
             added = False
             for role in roles:
@@ -161,17 +162,23 @@ class Main:
 
     # USERS
     @only_permitted(table="__users", operation="w")
-    def new_user(self, new_user, name, password_hash, roles, **kwargs):
+    def new_user(self, new_user, name, password_hash, roles, *, user, token):
         if not self.entities["__users"][new_user]:
+            n_roles = roles.split(" ")
+            accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"])
+            final_roles = []
+            for role in list(n_roles):
+                if role in accepted_roles:
+                    final_roles.append(role)
             self.entities["__users"][new_user] = {"id": new_user,
                                                   "name": name,
                                                   "pwdhash": password_hash,
-                                                  "roles": roles}
+                                                  "roles": " ".join(final_roles)}
         else:
             raise RuntimeError("User already exists")
 
     @only_permitted(table="__users", operation="w")
-    def modify_user(self, new_user, name, password_hash, roles, **kwargs):
+    def modify_user(self, new_user, name, password_hash, roles, *, user, token):
         pass
 
     @only_permitted(table="__users", operation="w")
@@ -181,7 +188,7 @@ class Main:
 
     # ROLES and permissions
     @only_permitted(table="__permissions", operation="r")
-    def get_user_permissions(self, user_id, **kwargs):
+    def get_user_permissions(self, user_id, *, user, token):
         permissions = defaultdict(lambda: defaultdict(False)) # Entity[operation]
         for perm in self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]}):
             if perm["permitted"] is True:
