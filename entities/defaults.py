@@ -26,7 +26,6 @@ def persistent(database):
                           "Fields Description",
                           entity,
                           "table")
-
     return entity, fields_entity
 
 def get_entity(database, table, ent=None):
@@ -42,7 +41,7 @@ def get_entity(database, table, ent=None):
         return Entity(database, ent["table_name"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"])
     else:
         return None
-        
+
 def get_entities(database):
     entity, fields_entity = persistent(database)
     entities_list = entity.get({})
