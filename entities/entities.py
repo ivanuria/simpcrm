@@ -5,6 +5,7 @@ from databases.sqlite import SqliteInterface
 from collections import defaultdict
 from .fields import Field, Fields
 from datetime import datetime, timedelta
+from threading import RLock
 
 TIMEOUT = 10
 LIFETIME = 600 # Fot future implementation
@@ -86,13 +87,14 @@ class Item(dict):
 
     def update_data(self, data):
         #TODO: Any verification if needed
-        self.update(data)
-        if self._server_changed_handlers and isinstance(self._server_changed_handlers, dict):
-            for key in self.entity.fields:
-                if key in self._server_changed_handlers and key in data and isinstance(self._server_changed_handlers[key], list):
-                    for handler in self._server_changed_handlers[key]:
-                        if callable(handler) is True:
-                            handler(data[key])
+        with self.lock:
+            self.update(data)
+            if self._server_changed_handlers and isinstance(self._server_changed_handlers, dict):
+                for key in self.entity.fields:
+                    if key in self._server_changed_handlers and key in data and isinstance(self._server_changed_handlers[key], list):
+                        for handler in self._server_changed_handlers[key]:
+                            if callable(handler) is True:
+                                handler(data[key])
 
 
 
@@ -159,6 +161,7 @@ class Entity:
         self._parent_field = parent_field
         self._children = []
         self._primary_key = None
+        self.lock = RLock()
         self._loop = loop
         self.persistent[database][self.table] = self
 
@@ -290,19 +293,20 @@ class Entity:
 
     def change_field(self, field_id, *, new_field_id=None, new_definition=None, new_description=None):
         if (new_field_id is not None or new_definition is not None) and field_id in self.fields:
-            new_data = {}
-            if new_definition is not None and self.fields[field_id].definition != definition:
-                self.fields[field_id] = new_definition
-                new_data["definition"] = new_definition
-            if new_description is not None and self.fields[field_id].description != new_description:
-                self.fields.description = new_description
-                new_data["description"] = new_description
-            if new_field_id is not None and new_field_id != field_id:
-                self.fields[field_id].change_name(new_field_id)
-                new_data["name"] = new_field_id
-            if new_data and self.installed and "__fields" in Entity.persistent[self.database]:
-                Entity.persistent[self.database]["__fields"].update(new_data,
-                                                                    filter={"name": field_id})
+            with self.lock:
+                new_data = {}
+                if new_definition is not None and self.fields[field_id].definition != definition:
+                    self.fields[field_id] = new_definition
+                    new_data["definition"] = new_definition
+                if new_description is not None and self.fields[field_id].description != new_description:
+                    self.fields.description = new_description
+                    new_data["description"] = new_description
+                if new_field_id is not None and new_field_id != field_id:
+                    self.fields[field_id].change_name(new_field_id)
+                    new_data["name"] = new_field_id
+                if new_data and self.installed and "__fields" in Entity.persistent[self.database]:
+                    Entity.persistent[self.database]["__fields"].update(new_data,
+                                                                        filter={"name": field_id})
 
     def change_fields(self, fields):
         if isinstance(fields, (list, tuple)):
