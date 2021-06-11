@@ -161,6 +161,7 @@ class Main:
         return final_roles
 
     # USERS
+
     @only_permitted(table="__users", operation="w")
     def new_user(self, new_user, name, password_hash, roles, *, user, token):
         if not self.entities["__users"][new_user]:
@@ -179,7 +180,20 @@ class Main:
 
     @only_permitted(table="__users", operation="w")
     def modify_user(self, new_user, name, password_hash, roles, *, user, token):
-        pass
+        if self.entities["__users"][new_user]:
+            n_roles = roles.split(" ")
+            accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"])
+            final_roles = []
+            for role in list(n_roles):
+                if role in accepted_roles:
+                    final_roles.append(role)
+            self.entities["__users"][new_user] = {"id": new_user,
+                                                  "name": name,
+                                                  "pwdhash": password_hash,
+                                                  "roles": " ".join(final_roles)}
+        else:
+            self.new_user(new_user, name, password_hash, roles, user=user, token=token)
+            # Modify a non existing user should create it, why not?
 
     @only_permitted(table="__users", operation="w")
     def delete_user(self, user_id, **kwargs):
