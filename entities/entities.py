@@ -96,8 +96,6 @@ class Item(dict):
                             if callable(handler) is True:
                                 handler(data[key])
 
-
-
 class Entity:
     persistent = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
