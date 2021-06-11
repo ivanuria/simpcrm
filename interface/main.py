@@ -161,16 +161,21 @@ class Main:
         return final_roles
 
     # USERS
+    def check_permitted_roles(self, user, roles):
+        if isinstance(roles, str):
+            roles = roles.split(" ")
+        n_roles = list(roles)
+        accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"])
+        final_roles = []
+        for role in list(n_roles):
+            if role in accepted_roles:
+                final_roles.append(role)
+        return final_roles
 
     @only_permitted(table="__users", operation="w")
     def new_user(self, new_user, name, password_hash, roles, *, user, token):
         if not self.entities["__users"][new_user]:
-            n_roles = roles.split(" ")
-            accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"])
-            final_roles = []
-            for role in list(n_roles):
-                if role in accepted_roles:
-                    final_roles.append(role)
+            final_roles = self.check_permitted_roles(user, roles)
             self.entities["__users"][new_user] = {"id": new_user,
                                                   "name": name,
                                                   "pwdhash": password_hash,
@@ -181,12 +186,7 @@ class Main:
     @only_permitted(table="__users", operation="w")
     def modify_user(self, new_user, name, password_hash, roles, *, user, token):
         if self.entities["__users"][new_user]:
-            n_roles = roles.split(" ")
-            accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"])
-            final_roles = []
-            for role in list(n_roles):
-                if role in accepted_roles:
-                    final_roles.append(role)
+            final_roles = self.check_permitted_roles(user, roles)
             self.entities["__users"][new_user] = {"id": new_user,
                                                   "name": name,
                                                   "pwdhash": password_hash,
