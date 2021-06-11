@@ -282,6 +282,12 @@ class Entity:
         assert isinstance(database, DBInterface)
         self._database = database
 
+    def add_field(self, field_dict):
+        pass
+
+    def add_fields(self, field_list):
+        pass
+
     def change_field(self, field_id, *, new_field_id=None, new_definition=None, new_description=None):
         if (new_field_id is not None or new_definition is not None) and field_id in self.fields:
             new_data = {}
