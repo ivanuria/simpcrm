@@ -246,7 +246,7 @@ class Entity:
     def delete(self, filter):
         self.database.delete(filter=filter, table=self.table)
 
-    def get(self, filter):
+    def get(self, filter={}):
         return self.database.select(filter=filter, table=self.table)
 
     def insert(self, data):
