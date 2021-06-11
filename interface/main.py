@@ -229,15 +229,36 @@ class Main:
             if perm["permitted"] is True:
                 permission[perm["entity"]][[perm["operation"]] = perm["permitted"]
 
-    @only_permitted(table="__permissions", operation="w")
-    def new_role(self, role_id, description, parent, permissions, *, user, token):
+    def get_permmited_permissions_changes(self, user, permissions):
         permitted_changes = self.get_self_permissions(user=user, token=token)
         for key in permissions:
             if key in permitted_changes and permitted_changes[key]["permitted"] is True:
-                assert all[k in permissions[key] for k in ["entity", "operation", "permitted"]]
+                assert all([k in permissions[key] for k in ["entity", "operation", "permitted"]])
                 permitted_changes[key] = permissions[key]
+        return permitted_changes
+
+    @only_permitted(table="__permissions", operation="w")
+    def new_role(self, role_id, description, parent, permissions, *, user, token):
+        permitted_changes = self.get_permmited_permissions_changes(user, permissions)
         if self.entities["__roles"][role_id]:
             raise RuntimeError("Role already existing")
+        else:
+            self.entities["__roles"][role_id] = {"description": description,
+                                                 "parent": parent}
+            for perm in permitted_changes:
+                self.entities["__permissions"].insert({"entity": permitted_changes[perm]["entity"],
+                                                       "operation": permitted_changes[perm]["operation"],
+                                                       "permitted": permitted_changes[perm]["permitted"],,
+                                                       "__roles_id": role_id})
+
+    @only_permitted(table="__permissions", operation="w")
+    def modify_role(self, role_id, description, parent, permissions, *, user, token):
+        if role_id == "admin":
+            raise RuntimeError("Operation not permitted")
+        permitted_changes = self.get_permmited_permissions_changes(user, permissions)
+        if not self.entities["__roles"][role_id]:
+            self.new_role(role_id, description, parent, permissions, user=user, token=token)
+            #By now any attempt of changing a non existing role will create
         else:
             self.entities["__roles"][role_id] = {"description": description,
                                                  "parent": parent}
