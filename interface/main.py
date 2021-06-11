@@ -54,15 +54,14 @@ def only_permitted(table=None, operation="r"):
                 else:
                     table = kwargs["table"]
                 #map(del, [kwargs["user"], kwargs["token"]])
-                user = self.entities["__users"][user]
-                if user["token"] != token or user["expires_at"] < datetime.datetime.now():
+                if self.logged(user, token) is False:
                     raise RuntimeError("Unauthorised: may login again")
                 else:
+                    user = self.entities["__users"][user]
                     roles = user["roles"].split(" ")
                     authorising = self.entities["__permissions"].get({"entity": table,
                                                                       "operation": operation,
                                                                       "__roles_id": ["IN", roles]})
-
                 if any([k["permitted"] for k in authorising]):
                     return func(self, *args, **kwargs)
                 else:
@@ -140,32 +139,67 @@ class Main:
         self.entities = get_entities(self.database)
 
 
+    def logged(self, user, token):
+        user = self.entities["__users"][user]
+        if user["token"] != token or user["expires_at"] < datetime.datetime.now():
+            return False
+        else:
+            return True
+
     # USERS
-    @only_permitted(table="__users", operation="w", **kwargs)
-    def new_user(self, new_user, name, password_hash, roles):
+    @only_permitted(table="__users", operation="w")
+    def new_user(self, new_user, name, password_hash, roles, **kwargs):
         self.entities["__users"][new_user] = {"id": new_user,
                                               "name": name,
                                               "pwdhash": password_hash,
                                               "roles": roles}
 
-    @only_permitted(table="__users", operation="w", **kwargs)
-    def modify_user(self, new_user, name, password_hash, roles):
+    @only_permitted(table="__users", operation="w")
+    def modify_user(self, new_user, name, password_hash, roles, **kwargs):
         # same as new_user just for readability
         self.new_user(new_user, name, password_hash, roles)
 
-    @only_permitted(table="__users", operation="w, **kwargs")
-    def delete_user(self, user_id):
+    @only_permitted(table="__users", operation="w")
+    def delete_user(self, user_id, **kwargs):
         self.entities["__users"].delete({self.entities["__users"].primary_key: user_id})
 
 
     # ROLES and permissions
-    @only_permitted(table="__permissions", operation="r", **kwargs)
-    def get_user_permissions(self, user_id):
+    @only_permitted(table="__permissions", operation="r")
+    def get_user_permissions(self, user_id, **kwargs):
         permissions = defaultdict(lambda: defaultdict(False)) # Entity[operation]
         for perm in self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]}):
             if perm["permitted"] is True:
                 permission[perm["entity"]][[perm["operation"]] = perm["permitted"]
 
-    @only_permitted(table="__permissions", operation="w", **kwargs)
-    def new_role(self, role_id, description, parent, permissions):
-        pass #TODO
+    def get_self_permissions(self, *, user, token):
+        permissions = defaultdict(lambda: defaultdict(False))
+        if self.logged(user, token) is False:
+            raise RuntimeError("Unauthorised: may login again")
+        else:
+            user = self.entities["__users"][user]
+            roles = user["roles"].split(" ")
+            authorising = self.entities["__permissions"].get({"entity": table,
+                                                              "operation": operation,
+                                                              "__roles_id": ["IN", roles]})
+        for perm in self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]}):
+            if perm["permitted"] is True:
+                permission[perm["entity"]][[perm["operation"]] = perm["permitted"]
+
+    @only_permitted(table="__permissions", operation="w")
+    def new_role(self, role_id, description, parent, permissions, *, user, token):
+        permitted_changes = self.get_self_permissions(user=user, token=token)
+        for key in permissions:
+            if key in permitted_changes and permitted_changes[key]["permitted"] is True:
+                assert all[k in permissions[key] for k in ["entity", "operation", "permitted"]]
+                permitted_changes[key] = permissions[key]
+        if self.entities["__roles"][role_id]:
+            raise RuntimeError("Role already existing")
+        else:
+            self.entities["__roles"][role_id] = {"description": description,
+                                                 "parent": parent}
+            for perm in permitted_changes:
+                self.entities["__permissions"].insert({"entity": permitted_changes[perm]["entity"],
+                                                       "operation": permitted_changes[perm]["operation"],
+                                                       "permitted": permitted_changes[perm]["permitted"],,
+                                                       "__roles_id": role_id})
