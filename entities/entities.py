@@ -284,12 +284,19 @@ class Entity:
 
     def change_field(self, field_id, *, new_field_id=None, new_definition=None, new_description=None):
         if (new_field_id is not None or new_definition is not None) and field_id in self.fields:
+            new_data = {}
             if new_definition is not None and self.fields[field_id].definition != definition:
                 self.fields[field_id] = new_definition
+                new_data["definition"] = new_definition
             if new_description is not None and self.fields[field_id].description != new_description:
-                self.fields.decription = new_description
+                self.fields.description = new_description
+                new_data["description"] = new_description
             if new_field_id is not None and new_field_id != field_id:
                 self.fields[field_id].change_name(new_field_id)
+                new_data["name"] = new_field_id
+            if new_data and self.installed and "__fields" in Entity.persistent[self.database]:
+                Entity.persistent[self.database]["__fields"].update(new_data,
+                                                                    filter={"name": field_id})
 
     def change_fields(self, fields):
         if isinstance(fields, (list, tuple)):
@@ -299,4 +306,6 @@ class Entity:
                         new_definition = item["new_definition"]
                     if all([key in item for key in ["name", "new_name"]]):
                         new_field_id = item["new_name"]
-                    self.change_field(item["name"], new_definition=new_definition, new_field_id=new_field_id)
+                    if "new_description" in item:
+                        new_description = item["new_description"]
+                    self.change_field(item["name"], new_definition=new_definition, new_field_id=new_field_id, new_description=new_description)
