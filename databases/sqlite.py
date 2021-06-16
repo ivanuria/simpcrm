@@ -323,7 +323,7 @@ class SqliteInterface(DBInterface):
         self.conn.commit()
 
     #Table Alterations
-    def alter_table_rename_table(self, new_name, table=None):
+    def alter_table_rename_table(self, new_name, table=None, database=None):
         """
         Changes name of table
         """
@@ -346,7 +346,7 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self.conn.commit()
 
-    def alter_table_add_column(self, column, column_type, table=None):
+    def alter_table_add_column(self, column, column_type, table=None, database=None):
         """
         Adds new column in specified table table
         """
@@ -358,7 +358,7 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self.conn.commit()
 
-    def alter_table_drop_column(self, column, table=None):
+    def alter_table_drop_column(self, column, table=None, database=None):
         """
         Adds new column in specified table table
         """
@@ -372,11 +372,11 @@ class SqliteInterface(DBInterface):
         self.alter_table_rename_table(table, table=temp_table)
 
 
-    def alter_table_modify_column(self, column, column_type, table=None):
+    def alter_table_modify_column(self, column, column_type, table=None, database=None):
         """
         Changes data type for column in specified table table
         """
-        table, column, column_type = super().alter_table_modify_column(column, column_type, table=table)
+        table, column, column_type, database = super().alter_table_modify_column(column, column_type, table=table)
         schema = self.get_schema(table=table)
         schema[column] = column_type
         temp_table = "_temp_"+table
@@ -388,14 +388,14 @@ class SqliteInterface(DBInterface):
         self.alter_table_rename_table(table, table=temp_table)
 
     #Get SCHEMA
-    def get_schema(self, table=None):
+    def get_schema(self, table=None, database=None):
         schema = {"primary key": DBEnums.PRIMARY,
                   "text": str,
                   "integer": int,
                   "real": float,
                   "blob": object,
                   "null": None}
-        table = super().get_schema(table=table)
+        table, database = super().get_schema(table=table, database)
         sql, safe = self._create_sql_query(method=DBEnums.GET_SCHEMA,
                                             table=table)
         self.cursor.execute(sql, safe)

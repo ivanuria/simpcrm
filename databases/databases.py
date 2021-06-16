@@ -442,19 +442,35 @@ class DBInterface:
             database = self.database
         return table, column, database
 
-    def alter_table_modify_column(self, column, column_type, table=None):
-        """
-        Changes data type for column in specified table table
+    def alter_table_modify_column(self, column:str, column_type:type, table:str=None, database:str=None) -> tuple:
+        """Changes data type in specified column
+            To be overriden in child class, to use defaults given by this class use:
+                table, column, database = super().alter_table_drop_column(table, column, database)
+        Arguments:
+            column: name of column
+            column_type: python type to apply. Data can be lost in this transaction
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            table, column, column_type, database
         """
         if table is None:
             table = self.table
-        return table, column, column_type
+        if database is None:
+            database = self.database
+        return table, column, column_type, database
 
     #Get SCHEMA
-    def get_schema(self, table=None):
+    def get_schema(self, table:str=None, database:str=None) -> tuple:
+        """Gets Schema for table in database
+            To be overriden in child class, to use defaults given by this class use:
+                table, database = super().get_schema(table, database)
+        """
         if table is None:
             table = self.table
-        return table
+        if database is None:
+            database = self.database
+        return table, database
 
     def get_primary_key(self, table=None):
         if table is None:
