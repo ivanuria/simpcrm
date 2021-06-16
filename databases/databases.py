@@ -407,13 +407,23 @@ class DBInterface:
             database = self.database
         return table, column, new_name, database
 
-    def alter_table_add_column(self, column, column_type, table=None):
-        """
-        Adds new column in specified table table
+    def alter_table_add_column(self, column:str, column_type:type, table:str=None, database:str=None):
+        """Adds new column in table
+            To be overriden in child class, to use defaults given by this class use:
+                table, column, column_type, database = super().alter_table_add_column(table, column, column_type, database)
+        Arguments:
+            column: real name of column
+            column_type: python type for this new column
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            table, column, column_type, database
         """
         if table is None:
             table = self.table
-        return table, column, column_type
+        if database is None:
+            database = self.database
+        return table, column, column_type, database
 
     def alter_table_drop_column(self, column, table=None):
         """

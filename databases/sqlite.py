@@ -350,7 +350,7 @@ class SqliteInterface(DBInterface):
         """
         Adds new column in specified table table
         """
-        table, column, column_type = super().alter_table_add_column(column, column_type, table=table)
+        table, column, column_type, database = super().alter_table_add_column(column, column_type, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_ADD_COLUMN,
                                             table=table,
                                             fields=[column],
