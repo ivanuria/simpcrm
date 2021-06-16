@@ -246,7 +246,7 @@ class SqliteInterface(DBInterface):
         del(self._conn[threading.currentThread()])
 
     # Tables operations
-    def create_table(self, table, fields={}, data={}, exists=True):
+    def create_table(self, table, fields={}, data={}, exists=True, database=None):
         assert fields # Thay must not be void
         if isinstance (fields, dict):
             data = list(fields.values())
@@ -275,7 +275,7 @@ class SqliteInterface(DBInterface):
         """
         drops selected table
         """
-        database, table = super().drop_table(database=database, table=table)
+        table, database = super().drop_table(database=database, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.DROP_TABLE,
                                             table=table)
         self.cursor.execute(sql, safe)
@@ -284,7 +284,7 @@ class SqliteInterface(DBInterface):
     # Executings
 
     def select(self, **kwargs):
-        filter, database, table, fields = super().select(**kwargs)
+        filter, table, fields, database = super().select(**kwargs)
         sql, safe = self._create_sql_query(method=DBEnums.SELECT,
                                             table=table,
                                             fields=fields,
@@ -293,7 +293,7 @@ class SqliteInterface(DBInterface):
         return Data(self.cursor.fetchall())
 
     def insert(self, data, table=None, database=None):
-        database, table, fields, values = super().insert(data, database=database, table=table)
+        table, fields, values, database = super().insert(data, database=database, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.INSERT,
                                             table=table,
                                             fields=fields,
@@ -305,7 +305,7 @@ class SqliteInterface(DBInterface):
         self.conn.commit()
 
     def update(self, data, table=None, filter=None, database=None):
-        filter, database, table, fields, values = super().update(data, filter=filter, database=database, table=table)
+        filter, table, fields, values, database = super().update(data, filter=filter, database=database, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.UPDATE,
                                             table=table,
                                             fields=fields,
@@ -315,7 +315,7 @@ class SqliteInterface(DBInterface):
         self.conn.commit()
 
     def delete(self, **kwargs):
-        filter, database, table = super().delete(**kwargs)
+        filter, table, database = super().delete(**kwargs)
         sql, safe = self._create_sql_query(method=DBEnums.DELETE,
                                             table=table,
                                             filter=filter)
@@ -327,18 +327,18 @@ class SqliteInterface(DBInterface):
         """
         Changes name of table
         """
-        table, new_name = super().alter_table_rename_table(new_name, table=table)
+        table, new_name, database = super().alter_table_rename_table(new_name, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_RENAME_TABLE,
                                             table=table,
                                             data=[new_name])
         self.cursor.execute(sql, safe)
         self.conn.commit()
 
-    def alter_table_rename_column(self, column, new_name, table=None):
+    def alter_table_rename_column(self, column, new_name, table=None, database=None):
         """
         Changes name of column is specified table table
         """
-        table, column, new_name = super().alter_table_rename_column(column, new_name, table=table)
+        table, column, new_name, database = super().alter_table_rename_column(column, new_name, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_RENAME_COLUMN,
                                             table=table,
                                             fields=[column],
@@ -421,7 +421,7 @@ class SqliteInterface(DBInterface):
         return returning
 
     def create_table_as_another(self, new_table, filter=None, database=None, table=None, fields=None, exists=True):
-        filter, database, table, fields = super().select(filter=filter, database=database, table=table, fields=fields)
+        filter, table, fields, database = super().select(filter=filter, database=database, table=table, fields=fields)
         sql, safe = self._create_sql_query(method=DBEnums.SELECT,
                                            table=table,
                                            fields=fields,

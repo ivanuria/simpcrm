@@ -223,7 +223,7 @@ class DBInterface:
         """
         raise NotImplementedError
 
-    def delete_database(self, databas:str=None) -> NoReturn:
+    def delete_database(self, database:str=None) -> NoReturn:
         """Disconnects and deletes selectted database
         To be implemented in child class.
         Arguments:
@@ -250,7 +250,7 @@ class DBInterface:
         """
         raise NotImplementedError
 
-    def create_table(self, table:str, fields:dict={}) -> NoReturn:
+    def create_table(self, table:str, fields:dict={}, database:str=None) -> NoReturn:
         """Creates table with fields definition
             To be implemented in child class.
         Arguments:
@@ -261,36 +261,37 @@ class DBInterface:
                 {"id": [int, DBEnums.PRIMARY],
                  "foo": str,
                  "bar": datatime.datetime}
+            database: name of database. Database already set by default.
         """
         raise NotImplementedError
 
-    def drop_table(self, database=None, table=None) -> tuple:
+    def drop_table(self, table=None, database=None) -> tuple:
         """Drops selected table
             To be overriden in child class, to use defaults given by this class use:
-                database, table = super().drop_table(database, table)
+                table, database = super().drop_table(table, database)
         Arguments:
-            database: name of database. Database already set by default.
             table: name of table. Table already set by default.
+            database: name of database. Database already set by default.
         Returns:
-            database, table
+            table, database
         """
         if database is None:
             database = self.database
         if table is None:
             table = self.table
-        return database, table
+        return table, database
 
-    def select(self, filter:dict=None, database:str=None, table:str=None, fields:list=None) -> tuple:
+    def select(self, filter:dict=None, table:str=None, fields:list=None, database:str=None) -> tuple:
         """Selects data in database and table with set_filter
             To be overriden in child class, to use defaults given by this class use:
-                filter, database, table, fields = super().drop_table(filter, database, table, fields)
+                filter, table, fields, database = super().select(filter, table, fields, database)
         Arguments:
-            filter: filter to use. Filter already set by default.
-            database: name of database. Database already set by default.
-            table: name of table. Table already set by default.
-            fields: list of fields to get. All fields by default.
+            filter: filter to use. Filter already set by default
+            table: name of table. Table already set by default
+            fields: list of fields to get. All fields by default
+            database: name of database. Database already set by default
         Returns:
-            filter, database, table, fields
+            filter, table, fields, database
         """
         if filter is None:
             filter = self.filter
@@ -300,11 +301,20 @@ class DBInterface:
             table = self.table
         if fields is None:
             fields = []
-        return filter, database, table, fields
+        return filter, table, fields, database
 
-    def insert(self, data, database=None, table=None):
-        """
-        inserts data in database and table
+    def insert(self, data:[dict, list, tuple], table:str=None, database:str=None) -> tuple:
+        """Inserts data in database and table
+            To be overriden in child class, to use defaults given by this class use:
+                table, fields, values, database = super().insert(data, table, database)
+            It prepares from dict in dada the lists of values and fields to be
+            used in _create_sql_query
+        Arguments:
+            data: dict or list of dicts with the same keys with data to be inserted
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            filter, table, fields, database
         """
         if database is None:
             database = self.database
@@ -315,11 +325,21 @@ class DBInterface:
         elif isinstance(data, (list, tuple)):
             fields = list(data[0].keys())
             values = [list(item.values()) for item in data]
-        return database, table, fields, values
+        return table, fields, values, database
 
-    def update(self, data, filter=None, database=None, table=None):
-        """
-        inserts data in database and table with set_filter
+    def update(self, data:dict, filter:dict=None, table:str=None, database:str=None) -> tuple:
+        """Updates data in database and table with given filter
+            To be overriden in child class, to use defaults given by this class use:
+                filter, table, fields, values, database = super().update(data, filter, table, database)
+            It prepares from dict in dada the lists of values and fields to be
+            used in _create_sql_query
+        Arguments:
+            data: dict with data to be updated
+            filter: filter to use. Filter already set by default
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            filter, table, fields, values, database
         """
         assert isinstance(data, dict)
         if filter is None:
@@ -329,11 +349,18 @@ class DBInterface:
         if table is None:
             table = self.table
         fields, values = list(data.keys()), list(data.values())
-        return filter, database, table, fields, values
+        return filter, table, fields, values, database
 
-    def delete(self, filter=None, database=None, table=None):
-        """
-        removes data in database and table with set_filter
+    def delete(self, filter:dict=None, table:str=None, database:str=None) -> tuple:
+        """Removes data in database and table with given filter
+            To be overriden in child class, to use defaults given by this class use:
+                filter, table, database = super().delete(filter, table, database)
+        Arguments:
+            filter: filter to use. Filter already set by default
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            filter, table, database
         """
         if filter is None:
             filter = self.filter
@@ -341,25 +368,44 @@ class DBInterface:
             database = self.database
         if table is None:
             table = self.table
-        return filter, database, table
+        return filter, table, database
 
     #Table Alterations
-    def alter_table_rename_table(self, new_name, table=None):
-        """
-        Changes name of table
+    def alter_table_rename_table(self, new_name:str, table:str=None, database:str=None) -> tuple:
+        """Changes name of table
+            To be overriden in child class, to use defaults given by this class use:
+                table, new_name, database = super().alter_table_rename_table(table, new_name, database)
+        Arguments:
+            new_name: new name for table
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            table, new_name, database
         """
         if table is None:
             table = self.table
+        if database is None:
+            database = self.database
         self.set_table(new_name)
-        return table, new_name
+        return table, new_name, database
 
-    def alter_table_rename_column(self, column, new_name, table=None):
-        """
-        Changes name of column is specified table table
+    def alter_table_rename_column(self, column:str, new_name:str, table:str=None, database:str=None) -> tuple:
+        """Changes name of column in table
+            To be overriden in child class, to use defaults given by this class use:
+                table, column, new_name, database = super().alter_table_rename_column(table, column, new_name, database)
+        Arguments:
+            column: real name of column
+            new_name: new name for column
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            table, column, new_name, database
         """
         if table is None:
             table = self.table
-        return table, column, new_name
+        if database is None:
+            database = self.database
+        return table, column, new_name, database
 
     def alter_table_add_column(self, column, column_type, table=None):
         """
