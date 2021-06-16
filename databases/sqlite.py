@@ -363,7 +363,7 @@ class SqliteInterface(DBInterface):
         Adds new column in specified table table
         """
         #Although defined in sqlite documentation, clause is not recognized. This will be a little tricky
-        table, column = super().alter_table_drop_column(column, table=table)
+        table, column, database = super().alter_table_drop_column(column, table=table)
         schema = self.get_schema(table=table)
         del(schema[column])
         temp_table = "_temp_"+table
