@@ -395,7 +395,7 @@ class SqliteInterface(DBInterface):
                   "real": float,
                   "blob": object,
                   "null": None}
-        table, database = super().get_schema(table=table, database)
+        table, database = super().get_schema(table, database)
         sql, safe = self._create_sql_query(method=DBEnums.GET_SCHEMA,
                                             table=table)
         self.cursor.execute(sql, safe)

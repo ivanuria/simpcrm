@@ -434,7 +434,7 @@ class DBInterface:
             table: name of table. Table already set by default
             database: name of database. Database already set by default
         Returns:
-            table, column, column_type, database
+            table, column, database
         """
         if table is None:
             table = self.table
@@ -465,6 +465,11 @@ class DBInterface:
         """Gets Schema for table in database
             To be overriden in child class, to use defaults given by this class use:
                 table, database = super().get_schema(table, database)
+        Arguments:
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            table, database
         """
         if table is None:
             table = self.table
@@ -472,10 +477,21 @@ class DBInterface:
             database = self.database
         return table, database
 
-    def get_primary_key(self, table=None):
+    def get_primary_key(self, table:str=None, database:str=None) -> str:
+        """Gets defined primary key of table
+        Arguments:
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        Returns:
+            Name of field which is primary key
+        """
         if table is None:
             table = self.table
-        schema = self.get_schema(table=table)
+        if database is None:
+            database = self.database
+        schema = self.get_schema(table, database)
+        if isinstance(schema, tuple) and schema[0] == table and schema[1] == database:
+            raise NotImplemented("Method get_schema not implemented")
         for item in schema:
             if isinstance(schema[item], list) and DBEnums.PRIMARY in schema[item]:
                 return item
