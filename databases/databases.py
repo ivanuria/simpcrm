@@ -92,6 +92,18 @@ class DBInterface:
             Must be called from super() on overriding
         delete: deletes data from table with indicated filtera.
             Must be called from super() on overriding
+        alter_table_rename_table: renames table or tree
+            Must be called from super() on overriding
+        alter_table_rename_column: renames column or attribute of a tree
+            Must be called from super() on overriding
+        alter_table_add_column: adds column to table or attribute to a tree
+            Must be called from super() on overriding
+        alter_table_modify_column: modifies type of data in a column
+            Must be called from super() on overriding
+        get_schema: gets data schema
+            Must be called from super() on overriding
+        get_primary_key: gets the primary key of a table or tree
+            Must be called from super() on overriding
     """
     def __init__(self, database="", server="localhost", user="", password="", encryption=""):
         """
