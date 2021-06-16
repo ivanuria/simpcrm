@@ -2,12 +2,23 @@
 
 __author__ = "Iván Uría"
 
-"""
-databases.py gives an interface "DBInterface" to inherit from to develop any kind
-of database interface
+"""This module gives an interface "DBInterface" to inherit from to develop any kind
+of database interface.
+
+Example:
+    class MySQLInterface(DBInterface):
+        def __init__(self, database="", server="localhost", user="", password="", encryption=""):
+            super().__init__(database, server, user, password, enryption)
+            #Other important stuff to your implementation
+        def connect(self):
+            #Do stuff to connect to database
+        def disconnect(self):
+            #Do stuff to disconnect
+        ...
 """
 
 from enum import Enum, auto
+from typing import NoReturn
 
 class DBEnums(Enum):
     """Enumerator of Constants used by database objects.
@@ -105,54 +116,52 @@ class DBInterface:
         get_primary_key: gets the primary key of a table or tree
             Must be called from super() on overriding
     """
-    def __init__(self, database="", server="localhost", user="", password="", encryption=""):
-        """
-        Initializes DB Interface
-        KWARGS:
-            server -> default "localhost"
-            database -> db name
-            user -> user name to access server
-            password -> password to access server
-            encryption -> if encription is needed
+    def __init__(self, database:str="", server:str="localhost", user:str="", password:str="", encryption:str="") -> NoReturn:
+        """Initializes DB Interface
+        Arguments:
+            server: default "localhost"
+            database: db name
+            user: user name to access server
+            password: password to access server
+            encryption: if encryption is needed
         """
         self._database = database
         self._server = server
         self._user = user
         self._password = password
-        self._encryption = encription
+        self._encryption = encryption
         self._table = ""
         self._filter = {}
 
     @property
-    def database(self):
-        """
-        returns database name
+    def database(self) -> str:
+        """Returns database name
         """
         return self._database
 
     @property
-    def server(self):
-        """
-        returns server name
+    def server(self) -> str:
+        """Returns server name
         """
         return self._server
 
     @property
-    def table(self):
-        """
-        returns active table name
+    def table(self) -> str:
+        """Returns active table name
         """
         return self._table
 
     @property
-    def filter(self):
-        """
-        returns active filter
+    def filter(self) -> dict:
+        """Returns active filter
         """
         return self._filter
 
     @property
-    def sql_dict(self):
+    def sql_dict(self) -> dict:
+        """Returns a dcitionary with specified items that will be needed in implementations
+        For sanity sake
+        """
         return {"table": self.table,
                 "filter": self.filter,
                 "method": DBEnums.SELECT,
@@ -161,64 +170,109 @@ class DBInterface:
                 "exists":True
                 }
 
-    def connect(self):
-        """
-        connects to database
-        """
-        raise NotImplementedError
-
-    def disconnect(self):
-        """
-        disconnects database
+    def connect(self) -> NoReturn:
+        """Connects to database.
+        To be implemented in child class.
         """
         raise NotImplementedError
 
-    def set_database(self, database):
+    def disconnect(self) -> NoReturn:
+        """Disconnects database.
+        To be implemented in child class.
         """
-        sets database name
+        raise NotImplementedError
+
+    def set_database(self, database:str) -> NoReturn:
+        """Sets database name.
+        Arguments:
+            database: name of the database or file
         """
         self._database = database
 
-    def set_table(self, table):
-        """
-        sets table name
+    def set_table(self, table:str) -> NoReturn:
+        """Sets table name
+        Arguments:
+            table: name of the table or the tree
         """
         self._table = table
 
-    def set_filter(self, filter):
-        """
-        sets filter
+    def set_filter(self, filter:dict) -> NoReturn:
+        """Sets filter as specified
+        Arguments:
+            filter: Dcitionary with the filter. It will follow this form:
+                {"FIELD NAME": ["OPERATION TYPE", "VALUE"],
+                 "FIELD NAME": "VALUE"}
+                FIELD NAME: the name of the field.
+                OPERATION TYPE: "=" by default if only given the VALUE.
+                    It has to accept all of this ("=", "!=", "<=", ">=", "<", ">", "LIKE", "IN")
+                VALUE: The value to check
+            All items in the same dictionary will be trated with the boolean operation of "AND".
         """
         self._filter = filter
 
-    def check_table_exists(self, table, database=None):
-        """
-        checkes if table exists
-        """
-        pass
-
-    def delete_database(self, database=None):
-        """
-        disconnects and deletes selectted database
-        """
-        raise NotImplementedError
-
-    def _create_sql_query(cls, **kwargs):
-        """
-        creates sql query with given args
-          kwargs may have: "table", "method", "fields", "data"
+    def check_table_exists(self, table:str, database:str=None) -> bool:
+        """Checks if table exists.
+        To be implemented in child class.
+        Arguments:
+            table: Name of the table to check
+            database: Name of the database to check. If None, the default database
+                set with `set_database` will be set.
+        Returns:
+            True: Table exists
+            False: Table doesn't exists
         """
         raise NotImplementedError
 
-    def create_table(self, table, fields={}):
-        """
-        creates table with fields definition
+    def delete_database(self, databas:str=None) -> NoReturn:
+        """Disconnects and deletes selectted database
+        To be implemented in child class.
+        Arguments:
+            database: Name of the database to check. If None, the default database
+                set with `set_database` will be set.
         """
         raise NotImplementedError
 
-    def drop_table(self, database=None, table=None):
+    def _create_sql_query(self, *, table:str=None, method:DBEnums=DBEnums.SELECT,
+                          fields:[list, tuple]=[], data:[list, tuple]=[],
+                          exists:bool=True, filter:dict=None) -> str:
+        """Creates sql query with given args
+            You can use self.sql_dict to have a default dictionary
+            To be implemented in child class.
+        Arguments:
+            table: name of the table. Table set in self.set_table as default
+            method: method from DBEnums to use. DBEnums.SELECT as default
+            fields: list of fields in order
+            data: data to use in the same order than fields if needed
+            exists: True by default. Check if table or item exists before executeing clause
+            filter: filter to apply, no filter by default so you can espicify it in implementation
+        Returns:
+            str with the sql query.
         """
-        drops selected table
+        raise NotImplementedError
+
+    def create_table(self, table:str, fields:dict={}) -> NoReturn:
+        """Creates table with fields definition
+            To be implemented in child class.
+        Arguments:
+            table: name of the table
+            fields: dict with the name of the filed and the python type associated
+                This type must be converted to database specification in SQL clause
+                Example:
+                {"id": [int, DBEnums.PRIMARY],
+                 "foo": str,
+                 "bar": datatime.datetime}
+        """
+        raise NotImplementedError
+
+    def drop_table(self, database=None, table=None) -> tuple:
+        """Drops selected table
+            To be overriden in child class, to use defaults given by this class use:
+                database, table = super().drop_table(database, table)
+        Arguments:
+            database: name of database. Database already set by default.
+            table: name of table. Table already set by default.
+        Returns:
+            database, table
         """
         if database is None:
             database = self.database
@@ -226,9 +280,17 @@ class DBInterface:
             table = self.table
         return database, table
 
-    def select(self, filter=None, database=None, table=None, fields=None, **kwargs):
-        """
-        selects data in database and table with set_filter
+    def select(self, filter:dict=None, database:str=None, table:str=None, fields:list=None) -> tuple:
+        """Selects data in database and table with set_filter
+            To be overriden in child class, to use defaults given by this class use:
+                filter, database, table, fields = super().drop_table(filter, database, table, fields)
+        Arguments:
+            filter: filter to use. Filter already set by default.
+            database: name of database. Database already set by default.
+            table: name of table. Table already set by default.
+            fields: list of fields to get. All fields by default.
+        Returns:
+            filter, database, table, fields
         """
         if filter is None:
             filter = self.filter
