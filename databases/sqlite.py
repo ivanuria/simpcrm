@@ -361,17 +361,37 @@ class SqliteInterface(DBInterface):
         return sql_string, sql_safe_passing
     # Connection Methods
 
-    def connect(self):
+    def connect(self) -> NoReturn:
+        """Connects to database with instantation arguments.
+        """
         self._conn[threading.currentThread()] = sqlite3.connect(self._server, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self._conn[threading.currentThread()].row_factory = dict_factory
         self._cursor[threading.currentThread()] = self._conn[threading.currentThread()].cursor()
 
-    def disconnect(self):
+    def disconnect(self) -> NoReturn:
+        """Disconnects from database.
+        """
         self.conn.close()
         del(self._conn[threading.currentThread()])
 
     # Tables operations
-    def create_table(self, table, fields={}, data={}, exists=True, database=None):
+    def create_table(self, table:str, fields:dict={}, data:list=[]], exists:bool=True, database:str=None) -> NoReturn:
+        """Creates table with fields definition
+            To be implemented in child class.
+        Arguments:
+            table: name of the table
+            fields: dict with the name of the filed and the python type associated
+                This type must be converted to database specification in SQL clause
+                Example:
+                {"id": [int, DBEnums.PRIMARY],
+                 "foo": str,
+                 "bar": datatime.datetime}
+                 fields also accepts a list with a list of fields, but in this
+                 case data argument becomes mandatory
+            data: list of types paired with fields. Not necessary if fields is dict
+            exists: boolean to add "IF NOT EXISTS" to clause. True by default.
+            database: name of database. Database already set by default.            
+        """
         assert fields # Thay must not be void
         if isinstance (fields, dict):
             data = list(fields.values())
