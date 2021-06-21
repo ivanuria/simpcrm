@@ -79,6 +79,14 @@ class v1_Entity_setup(unittest.TestCase):
         self.entity.delete({"id": 2})
         self.assertEqual(self.entity.get({}), [{"id":1, "foo": "Hola", "bar": 10}])
 
+    def test_Entity_uninstall(self):
+        self.entity.uninstall()
+        self.assertFalse("ninini" in Entity.persistent)
+        with self.assertRaises(Error):
+            cursor = self.db.cursor
+            cursor.execute("SELECT * from ninini where 1")
+            cursor.fetchall()
+
 
 class v1_Entity_and_defaults(unittest.TestCase):
     def setUp(self):

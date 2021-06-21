@@ -275,6 +275,16 @@ class Entity:
         self._installed = True
         self.fields.set_installed()
 
+    def uninstall(self):
+        if self.table not in ("__entities", "__fields"):
+            if "__fields" in Entity.persistent[self.database]:
+                Entity.persistent[self.database]["__fields"].delete({"table_name": self.table})
+            if "__entities" in Entity.persistent[self.database]:
+                Entity.persistent[self.database]["__entities"].delete({"table_name": self.table})
+            if self.table in Entity.persistent[self.database]:
+                self.database.drop_table(self.table)
+            del(self)
+
     def replace(self, filter, data):
         self.database.update(data, filter=filter, table=self.table)
 
