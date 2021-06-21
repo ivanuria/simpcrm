@@ -585,7 +585,12 @@ class SqliteInterface(DBInterface):
         self.alter_table_rename_table(table, table=temp_table)
 
     #Get SCHEMA
-    def get_schema(self, table=None, database=None):
+    def get_schema(self, table:str=None, database:str=None) -> NoReturn:
+        """Gets Schema for table in database
+        Arguments:
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        """
         schema = {"primary key": DBEnums.PRIMARY,
                   "text": str,
                   "integer": int,
