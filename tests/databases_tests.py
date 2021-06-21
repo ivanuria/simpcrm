@@ -3,6 +3,7 @@
 
 VERSION = 0.1
 
+import os
 import unittest
 from databases.sqlite import SqliteInterface as SQLite, MEMORY
 from databases.databases import Data, DBEnums
@@ -11,7 +12,7 @@ from datetime import date, datetime, timedelta
 
 class v1_Databases_sqlite(unittest.TestCase):
     def setUp(self):
-        self.db = SQLite(server=MEMORY)
+        self.db = SQLite(server="tests\\test.db")
         self.db.connect()
         self.cursor = self.db.cursor
         self.conn = self.db.conn
@@ -24,6 +25,7 @@ class v1_Databases_sqlite(unittest.TestCase):
 
     def tearDown(self):
         self.db.disconnect()
+        os.remove("tests\\test.db")
 
     def test__create_filter_query_default(self):
         self.assertEqual(SQLite._create_filter_query({}), ("", {}))
