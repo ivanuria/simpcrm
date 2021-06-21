@@ -516,9 +516,13 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self.conn.commit()
 
-    def alter_table_rename_column(self, column, new_name, table=None, database=None):
-        """
-        Changes name of column is specified table table
+    def alter_table_rename_column(self, column:str, new_name:str, table:str=None, database:str=None) -> NoReturn:
+        """Changes name of column in table
+        Arguments:
+            column: real name of column
+            new_name: new name for column
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
         """
         table, column, new_name, database = super().alter_table_rename_column(column, new_name, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_RENAME_COLUMN,
