@@ -26,7 +26,16 @@ from collections import defaultdict, OrderedDict
 MEMORY = ":memory:" # For memory database
 RE = re.compile(r"[a-zA-Z0-9 ]+") # Just for search column name and type in schema
 
-def dict_factory(cursor, row): # Stolen from documentation
+def dict_factory(cursor:sqlite3.Cursor, row:list) -> dict:
+    """Factory to transform fetching list to dictionary.
+    It's used internally by sqlite3.
+    Stolen from documentation.
+    Arguments:
+        cursor: Cursor from sqlite3
+        row: List of result from fecthing
+    Returns:
+        dictionary of the form {"column": value}
+    """
     d = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
