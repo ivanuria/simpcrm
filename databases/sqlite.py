@@ -126,9 +126,15 @@ class SqliteInterface(DBInterface):
         return self._conn[threading.currentThread()]
 
     # Static Methods
-
     @classmethod
-    def _create_filter_query(cls, filter):
+    def _create_filter_query(cls, filter:dict) -> (str, dict):
+        """Creates sql filter query with given filter to use internally by
+        _create_sql_query
+        Arguments:
+            filter: filter to apply, no filter by default
+        Returns:
+            str with the sql query and dict with safe passing
+        """
         assert isinstance(filter, dict)
         if not filter:
             return "", {}
@@ -173,7 +179,16 @@ class SqliteInterface(DBInterface):
         return string, safe
 
     @classmethod
-    def _create_fields_pairing(cls, fields, data, joiner=" "):
+    def _create_fields_pairing(cls, fields:list, data:list, joiner:str=" ") -> (str, dict):
+        """Creates sql fields pairing to use internally by _create_sql_query
+        Arguments:
+            fields: list of fields to pair with data
+            data: list of types or data to pair with fields
+            joiner: the string between field and data. a space by default ->
+                in this case, data must be a list of types
+        Returns:
+            str with the sql query and dict with safe passing
+        """
         assert len(set(fields)) == len(data)
         sql_safe_passing = {}
         pairs = list(zip(fields, data))
@@ -209,7 +224,15 @@ class SqliteInterface(DBInterface):
         return pairing, sql_safe_passing
 
     @classmethod
-    def _create_fields_value_for_insert(cls, fields, values):
+    def _create_fields_value_for_insert(cls, fields:list, values:list) -> (str, dict):
+        """Creates sql fields pairing to use internally by _create_sql_query to
+        create an insert clause. Separated from _create_fields_value for sanity
+        Arguments:
+            fields: list of fields to pair with data
+            values: list or list of lists of values
+        Returns:
+            str with the sql query and dict with safe passing
+        """
         if isinstance(values, list) and len(values) > 0 and isinstance(values[0], list):
             assert len(fields) == len(values[0])
             safe = []
@@ -228,7 +251,21 @@ class SqliteInterface(DBInterface):
         values_str = ", ".join([":"+key+"value" for key in fields])
         return fields_str, values_str, safe
 
-    def _create_sql_query(self, **kwargs):
+    def _create_sql_query(self, *, table:str=None, method:DBEnums=DBEnums.SELECT,
+                          fields:[list, tuple]=[], data:[list, tuple]=[],
+                          exists:bool=True, filter:dict=None) -> (str, dict):
+        """Creates sql query with given kwargs to be used by sqlite3
+            You can use self.sql_dict to have a default dictionary for key args.
+        Key Arguments:
+            table: name of the table. Table set in self.set_table as default
+            method: method from DBEnums to use. DBEnums.SELECT as default
+            fields: list of fields in order
+            data: data to use in the same order than fields if needed
+            exists: True by default. Check if table or item exists before executeing clause
+            filter: filter to apply, no filter by default.
+        Returns:
+            str with the sql query and a dictionary with the values to safe passing.
+        """
         d = self.sql_dict
         d.update(kwargs)
         kwargs = d

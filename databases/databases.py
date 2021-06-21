@@ -238,7 +238,7 @@ class DBInterface:
         """Creates sql query with given args
             You can use self.sql_dict to have a default dictionary
             To be implemented in child class.
-        Arguments:
+        Key Arguments:
             table: name of the table. Table set in self.set_table as default
             method: method from DBEnums to use. DBEnums.SELECT as default
             fields: list of fields in order
