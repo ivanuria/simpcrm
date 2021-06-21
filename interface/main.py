@@ -1,15 +1,15 @@
 # Main program
 
 from entities import Item, Entity
-from entities.default import install_persistency, get_entity, get_entities
-from database import DBInterface, new_db_interface, DBEnums
+from entities.defaults import install_persistency, get_entity, get_entities
+from databases import DBInterface, new_db_interface, DBEnums
 from configparser import ConfigParser
 from datetime import datetime
 from functools import wraps
 
 VERSION = "0.1"
 
-DEFINITIONS = {"__users": {"id": [str, DBENums.PRIMARY],
+DEFINITIONS = {"__users": {"id": [str, DBEnums.PRIMARY],
                            "name": str,
                            "pwdhash": str,
                            "token": str,
@@ -68,7 +68,8 @@ def only_permitted(table=None, operation="r"):
                     raise RuntimeError("Unauthorised")
             else:
                 raise AttributeError("You may be an identified user")
-    return only_permitted_wrapper
+        return only_permitted_wrapper
+    return only_permitted_decorator
 
 class Main:
     def __init__(self, configdbfile="config\databases.ini"):
@@ -87,12 +88,13 @@ class Main:
     #static Methods
     @classmethod
     def read_configuration(cls, configfile):
-        default_config = {"Main DB": "type": "sqlite",
+        default_config = {"Main DB": {"type": "sqlite",
                                      "server": "data.db",
                                      "user": "",
                                      "password": "",
                                      "encription": "",
                                      "database": ""}
+                          }
         config = ConfigParser()
         config.read(configdbfile)
         if "Main DB" in config.sections():
@@ -219,7 +221,8 @@ class Main:
         permissions = defaultdict(lambda: defaultdict(False)) # Entity[operation]
         for perm in self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]}):
             if perm["permitted"] is True:
-                permission[perm["entity"]][[perm["operation"]] = perm["permitted"]
+                permissions[perm["entity"]][perm["operation"]] = perm["permitted"]
+        return permissions
 
     def get_self_permissions(self, *, user, token):
         permissions = defaultdict(lambda: defaultdict(False))
@@ -233,7 +236,8 @@ class Main:
                                                               "__roles_id": ["IN", roles]})
         for perm in self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]}):
             if perm["permitted"] is True:
-                permission[perm["entity"]][[perm["operation"]] = perm["permitted"]
+                permission[perm["entity"]][perm["operation"]] = perm["permitted"]
+        return permissions
 
     def get_permmited_permissions_changes(self, user, permissions):
         permitted_changes = self.get_self_permissions(user=user, token=token)
@@ -254,7 +258,7 @@ class Main:
             for perm in permitted_changes:
                 self.entities["__permissions"].insert({"entity": permitted_changes[perm]["entity"],
                                                        "operation": permitted_changes[perm]["operation"],
-                                                       "permitted": permitted_changes[perm]["permitted"],,
+                                                       "permitted": permitted_changes[perm]["permitted"],
                                                        "__roles_id": role_id})
 
     @only_permitted(table="__permissions", operation="w")
@@ -271,7 +275,7 @@ class Main:
             for perm in permitted_changes:
                 self.entities["__permissions"].insert({"entity": permitted_changes[perm]["entity"],
                                                        "operation": permitted_changes[perm]["operation"],
-                                                       "permitted": permitted_changes[perm]["permitted"],,
+                                                       "permitted": permitted_changes[perm]["permitted"],
                                                        "__roles_id": role_id})
 
     @only_permitted(table="__permissions", operation="w")
@@ -330,17 +334,17 @@ class Main:
         if entity_id in self.entities:
             return self.entities[entity_id].get(filter)
 
-    @only_permited(operation="w")
+    @only_permitted(operation="w")
     def add_data(self, entity_id, dat, *, user, tokena):
         if entity_id in self.entities:
             self.entities[entity_id].insert(data)
 
-    @only_permited(operation="w")
+    @only_permitted(operation="w")
     def replace_data(self, entity_id, filter, data, *, user, token):
         if entity_id in self.entities:
             self.entities[entity_id].replace(filter, data)
 
-    @only_permited(operation="w")
+    @only_permitted(operation="w")
     def delete_data(self, entity_id, filter, *, user, token):
         if entity_id in self.entities:
             self.entities[entity_id].delete(filter, data)

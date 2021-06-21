@@ -4,7 +4,7 @@
 VERSION = 0.1
 
 from .sqlite import SqliteInterface
-from .databases import Data, DBInterface
+from .databases import Data, DBInterface, DBEnums
 
 from enum import Enum, auto
 
