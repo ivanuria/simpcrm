@@ -497,14 +497,14 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self.conn.commit()
 
-    def delete(self, table:str=None, filter:dict=None, database:str=None) -> NoReturn:
+    def delete(self, filter:dict=None, table:str=None, database:str=None) -> NoReturn:
         """Removes data in database and table with given filter
         Arguments:
             filter: filter to use. Filter already set by default
             table: name of table. Table already set by default
             database: name of database. Database already set by default
         """
-        filter, table, database = super().delete(**kwargs)
+        filter, table, database = super().delete(filter, table, database)
         sql, safe = self._create_sql_query(method=DBEnums.DELETE,
                                             table=table,
                                             filter=filter)
