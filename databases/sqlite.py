@@ -90,23 +90,37 @@ class SqliteInterface(DBInterface):
         _create_filter_query: creates separately a "where" clause. For inner use only.
         _create_fields_pairing: creates separately a pairing key-value clause.
             For inner use only.
-        _create_fields_value_for_insert: creates separately a pairing key-value 
+        _create_fields_value_for_insert: creates separately a pairing key-value
             clause for insertion. For inner use only.
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, database:str=MEMORY, server:str="localhost", *args) -> NoReturn:
+        """Initializes SQLiteInterface
+        Arguments:
+            server: default "localhost"
+            database: db name default :memory:
+            user: user name to access server
+            password: password to access server
+            encryption: if encryption is needed
+        """
+        super().__init__(database, server, *args)
         self._conn = {}
         self._cursor = {}
         self.connect()
 
     @property
-    def cursor(self):
+    def cursor(self) -> sqlite3.Cursor:
+        """Returns a cursor for current connection in current thread.
+        Threadsafe.
+        """
         if not threading.currentThread() in self._cursor:
             self.connect()
         return self._cursor[threading.currentThread()]
 
     @property
-    def conn(self):
+    def conn(self) -> sqlite3.Connection:
+        """Returns a connection in current thread.
+        Threadsafe.
+        """
         if not threading.currentThread() in self._conn:
             self.connect()
         return self._conn[threading.currentThread()]
