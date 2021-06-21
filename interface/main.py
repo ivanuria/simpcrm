@@ -116,7 +116,7 @@ class Main:
     @property
     def installed(self):
         try:
-            get_entity("__simpcrm_main")
+            get_entity(self.database, "__simpcrm_main")
         except:
             return False
         else:
