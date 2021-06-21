@@ -94,7 +94,7 @@ class SqliteInterface(DBInterface):
         _create_fields_value_for_insert: creates separately a pairing key-value
             clause for insertion. For inner use only.
     """
-    def __init__(self, database:str=MEMORY, server:str="localhost", *args) -> NoReturn:
+    def __init__(self, database:str=MEMORY, server:str="localhost", *args, **kwargs) -> NoReturn:
         """Initializes SQLiteInterface
         Arguments:
             server: default "localhost"
