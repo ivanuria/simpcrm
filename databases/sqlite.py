@@ -103,7 +103,7 @@ class SqliteInterface(DBInterface):
             password: password to access server
             encryption: if encryption is needed
         """
-        super().__init__(database, server, *args)
+        super().__init__(database, server, *args, **kwargs)
         self._conn = {}
         self._cursor = {}
         self.connect()
