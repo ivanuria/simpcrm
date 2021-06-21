@@ -1,4 +1,19 @@
-# sqlite.py file inheriting from databases.py
+#!/usr/bin/env python
+
+__author__ = "Iván Uría"
+
+"""This module gives an interface inherited from "DBInterface" to implement SQL
+in the project. Intented not to use SQL clauses directly. All data is safe passed.
+Example of use:
+    db = SQLite(server=MEMORY)
+    db.connect()
+    data = db.get({"id": 10})
+    data.update({"name": "Juan Carlos"}, filter={"id": 10})
+    data.insert({"name": "Sofía", "sex": "poor", "age": 70})
+    data.delete({"id": 10})
+    data.alter_table_rename_column({"name": "alias"})
+    ...
+"""
 
 import sqlite3
 from databases.databases import Data, DBInterface, DBEnums
