@@ -1,6 +1,6 @@
 # Entities files
 
-from databases.databases import DBInterface
+from databases.databases import DBInterface, DBEnums
 from databases.sqlite import SqliteInterface
 from collections import defaultdict
 from .fields import Field, Fields
@@ -137,8 +137,8 @@ class Entity:
     def __init__(self, database, table, name, fields, description, parent="", parent_field="", loop=None):
         if ":" in table:
             parent, table = table.split(":")[-2:]
-            if parent in cls.persistent[database]:
-                parent = cls.persistent[database][parent]
+            if parent in self.persistent[database]:
+                parent = self.persistent[database][parent]
                 if not "parent_field":
                     parent_field = parent+"_id"
                     if not parent_field in fields:
@@ -268,8 +268,17 @@ class Entity:
                                                                        "parent_field": self.parent_field})
             if "__fields" in Entity.persistent[self.database]:
                 for field in self.fields:
+                    if not isinstance(self.fields[field].definition, (list, tuple)):
+                        definition = self.fields[field].definition.__name__
+                    else:
+                        primary = []
+                        if DBEnums.PRIMARY in self.fields[field].definition:
+                            del(self.fields[field].definition[self.fields[field].definition.index(DBEnums.PRIMARY)])
+                            primary = ["DBEnums.PRIMARY"]
+                        definition = ",".join([i.__name__ for i in self.fields[field].definition]+primary)
+                    print(definition)
                     Entity.persistent[self.database]["__fields"].insert({"name": self.fields[field].name,
-                                                                         "definition": self.fields[field].definition.__name__,
+                                                                         "definition": definition,
                                                                          "description": self.fields[field].description,
                                                                          "table_name": self.table})
         self._installed = True
