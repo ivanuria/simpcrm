@@ -83,6 +83,7 @@ class Main:
         else:
             self.load()
 
+
     #static Methods
     @classmethod
     def read_configuration(cls, configfile):
@@ -107,6 +108,10 @@ class Main:
             config.write(configfile)
 
     @property
+    def entities(self):
+        return Entity.persistent[self.database]
+
+    @property
     def installed(self):
         try:
             get_entity("__simpcrm_main")
@@ -118,7 +123,7 @@ class Main:
     def install(self, user, name, password_hash):
         install_persistency(self.database)
         for table in DEFINITIONS:
-            self.entities[table] = Entity(self.database, table, table,DEFINITIONS[table], "")
+            Entity(self.database, table, table, DEFINITIONS[table], "")
             self.entities[table].install()
         self.entities["__users"].insert({"id": user,
                                          "name": name,
@@ -291,7 +296,7 @@ class Main:
             self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description)
             self.entities[entity_id].install()
 
-    @only_permitted(operation="w")
+    @only_permitted(table="__entities", operation="w")
     def modify_entity(self, entity_id, name, fields, description, parent, parent_field, *, user, token):
         if entity_id.startswith("__"):
             raise RuntimeError("Entity Id not supported")
@@ -311,3 +316,10 @@ class Main:
             self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description)
         else:
             self.new_entity(entity_id, name, fields, description, parent, parent_field, User=user, token=token)
+
+    @only permitted(table="__entities", operation="w")
+    def delete_entity(self, entity_id):
+        if entity_id.startswith("__"):
+            raise RuntimeError("Entity Id not supported")
+        elif entity_id in self.entities:
+            self.entities[entity_id].uninstall()
