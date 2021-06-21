@@ -105,6 +105,10 @@ class Main:
             config.write(configfile)
 
     @property
+    def database(self):
+        return self._database
+
+    @property
     def entities(self):
         return Entity.persistent[self.database]
 
