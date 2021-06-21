@@ -450,7 +450,13 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         return Data(self.cursor.fetchall())
 
-    def insert(self, data, table=None, database=None):
+    def insert(self, data:dict, table:str=None, database:str=None) -> NoReturn:
+        """Inserts data in database and table
+        Arguments:
+            data: dict or list of dicts with the same keys with data to be inserted
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        """
         table, fields, values, database = super().insert(data, database=database, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.INSERT,
                                             table=table,
