@@ -79,16 +79,11 @@ class Main:
         self._configdbfile = configdbfile
         self._config = self.read_configuration(configdbfile)
         self._database = new_db_interface(**self._config["Main DB"])
-        if self.installed is False:
-            self.install()
-        else:
-            self.load()
-
 
     #static Methods
     @classmethod
     def read_configuration(cls, configdbfile):
-        default_config = {"Main DB": {"type": "sqlite",
+        default_config = {"Main DB": {"engine": "sqlite",
                                      "server": "data.db",
                                      "user": "",
                                      "password": "",
@@ -123,27 +118,29 @@ class Main:
             return True
 
     def install(self, user, name, password_hash):
-        install_persistency(self.database)
-        for table in DEFINITIONS:
-            Entity(self.database, table, table, DEFINITIONS[table], "")
-            self.entities[table].install()
-        self.entities["__users"].insert({"id": user,
-                                         "name": name,
-                                         "pwdhash": password_hash,
-                                         "roles": "admin"})
-        self.entities["__roles"].insert(DEFAULT_ROLES)
-        permissions = []
-        for role, perm in (("admin", True), ("user", False)):
-            for ent in ["__users", "__permissions", "__simpcrm_main"]:
-                for op in ["r", "w", "d"]: #r=read, w=write, d=delete
-                    permissions.append({"__roles_id": role, "entity": ent, "operation": op, "permitted": perm})
-        self.entities["__simpcrm_main"].insert({"installed": datetime.now(),
-                                                "version": VERSION,
-                                                "name": "",
-                                                "description": ""})
+        if self.installed is False:
+            install_persistency(self.database)
+            for table in DEFINITIONS:
+                Entity(self.database, table, table, DEFINITIONS[table], "")
+                self.entities[table].install()
+            self.entities["__users"].insert({"id": user,
+                                             "name": name,
+                                             "pwdhash": password_hash,
+                                             "roles": "admin"})
+            self.entities["__roles"].insert(DEFAULT_ROLES)
+            permissions = []
+            for role, perm in (("admin", True), ("user", False)):
+                for ent in ["__users", "__permissions", "__simpcrm_main"]:
+                    for op in ["r", "w", "d"]: #r=read, w=write, d=delete
+                        permissions.append({"__roles_id": role, "entity": ent, "operation": op, "permitted": perm})
+            self.entities["__simpcrm_main"].insert({"installed": datetime.now(),
+                                                    "version": VERSION,
+                                                    "name": "",
+                                                    "description": ""})
 
     def load(self):
-        self.entities = get_entities(self.database)
+        if self.installed is True:
+            self.entities = get_entities(self.database)
 
     def logged(self, user, token):
         user = self.entities["__users"][user]
