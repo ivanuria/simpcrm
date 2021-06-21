@@ -431,8 +431,18 @@ class SqliteInterface(DBInterface):
 
     # Executings
 
-    def select(self, **kwargs):
-        filter, table, fields, database = super().select(**kwargs)
+    def select(self, filter:dict=None, table:str=None, fields:list=None, database:str=None) -> Data:
+        """Selects data in database and table with set_filter
+        Arguments:
+            filter: filter to use. Filter already set by default
+            table: name of table. Table already set by default
+            fields: list of fields to get. All fields by default
+            database: name of database. Database already set by default
+        Returns:
+            Data(list of dicts) with results. If only one given a list of len==1
+            will be returned
+        """
+        filter, table, fields, database = super().select(filter, table, fields, database)
         sql, safe = self._create_sql_query(method=DBEnums.SELECT,
                                             table=table,
                                             fields=fields,
