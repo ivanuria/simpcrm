@@ -565,9 +565,13 @@ class SqliteInterface(DBInterface):
         self.alter_table_rename_table(table, table=temp_table)
 
 
-    def alter_table_modify_column(self, column, column_type, table=None, database=None):
-        """
-        Changes data type for column in specified table table
+    def alter_table_modify_column(self, column:str, column_type:type, table:str=None, database:str=None) -> NoReturn:
+        """Changes data type in specified column
+        Arguments:
+            column: name of column
+            column_type: python type to apply. Data can be lost in this transaction
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
         """
         table, column, column_type, database = super().alter_table_modify_column(column, column_type, table=table)
         schema = self.get_schema(table=table)
