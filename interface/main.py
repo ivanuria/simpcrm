@@ -35,7 +35,7 @@ DEFAULT_ROLES = [{"id": "admin",
                   "name": "Administrator",
                   "description": "System Administrator"},
                  {"id": "user",
-                  "name": "USer",
+                  "name": "User",
                   "desctiption": "System User"}]
 
 EXPIRE_TOKEN = 3600
