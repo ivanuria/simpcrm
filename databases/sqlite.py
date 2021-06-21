@@ -268,7 +268,16 @@ class SqliteInterface(DBInterface):
             str with the sql query and a dictionary with the values to safe passing.
         """
         d = self.sql_dict
-        d.update(kwargs)
+        kwargs = {"table": table,
+                  "method": method,
+                  "fields": fields,
+                  "data": data,
+                  "exists": exists,
+                  "filter": filter}
+        for key in ["table", "filter"]:
+            if kwargs[key] is None:
+                del(kwargs[key])
+        d.update(**kwargs)
         kwargs = d
         assert all(["table" in kwargs,
                     "method" in kwargs,
