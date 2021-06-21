@@ -81,6 +81,9 @@ class Main:
         self._config = self.read_configuration(configdbfile)
         self._database = new_db_interface(**self._config["Main DB"])
 
+    def __del__(self):
+        self.close()
+
     #static Methods
     @classmethod
     def read_configuration(cls, configdbfile):
@@ -88,7 +91,7 @@ class Main:
                                      "server": "data.db",
                                      "user": "",
                                      "password": "",
-                                     "encription": "",
+                                     "encryption": "",
                                      "database": ""}
                           }
         config = ConfigParser()
@@ -121,6 +124,9 @@ class Main:
             return False
         else:
             return True
+
+    def close(self):
+        self.database.disconnect()
 
     def install(self, user, name, password_hash):
         if self.installed is False:
