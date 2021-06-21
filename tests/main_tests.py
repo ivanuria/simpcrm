@@ -21,7 +21,7 @@ class v1_Main(unittest.TestCase):
 
     def tearDown(self):
         self.main.close()
-        os.remove("tests\test.db")
+        os.remove("tests\\test.db")
 
     def test_installed(self):
         self.assertTrue(self.main.installed)

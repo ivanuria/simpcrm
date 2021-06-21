@@ -99,10 +99,9 @@ class Main:
                           }
         config = ConfigParser()
         config.read(configdbfile)
-        print(configdbfile, dict(config))
         if "Main DB" in config.sections():
-            default_config.update(dict(config))
-
+            default_config["Main DB"].update(dict(config["Main DB"]))
+            print(default_config)
         return default_config
 
     @classmethod
