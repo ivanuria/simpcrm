@@ -413,9 +413,9 @@ class SqliteInterface(DBInterface):
             else:
                 index = fields.index("id")
                 if isinstance(data, (list, tuple)):
-                    data[index] = list(data[index]) + [PRIMARY]
+                    data[index] = list(data[index]) + [DBEnums.PRIMARY]
                 else:
-                    data[index] = (data[index], PRIMARY)
+                    data[index] = (data[index], DBEnums.PRIMARY)
         kwargs = self.sql_dict
         kwargs.update(method=DBEnums.CREATE_TABLE,
                       table=table,
