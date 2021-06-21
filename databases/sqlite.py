@@ -390,7 +390,7 @@ class SqliteInterface(DBInterface):
                  case data argument becomes mandatory
             data: list of types paired with fields. Not necessary if fields is dict
             exists: boolean to add "IF NOT EXISTS" to clause. True by default.
-            database: name of database. Database already set by default.            
+            database: name of database. Database already set by default.
         """
         assert fields # Thay must not be void
         if isinstance (fields, dict):
@@ -416,15 +416,18 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self.conn.commit()
 
-    def drop_table(self, table, database=None):
-        """
-        drops selected table
+    def drop_table(self, table:str=None, database:str=None) -> NoReturn:
+        """Drops selected table
+        Arguments:
+            table: name of table. Table already set by default.
+            database: name of database. Database already set by default.
+        Returns:
+            table, database
         """
         table, database = super().drop_table(database=database, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.DROP_TABLE,
                                             table=table)
         self.cursor.execute(sql, safe)
-        return Data(self.cursor.fetchall())
 
     # Executings
 
