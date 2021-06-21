@@ -126,7 +126,7 @@ class Main:
             install_persistency(self.database)
             for table in DEFINITIONS:
                 Entity(self.database, table, table, DEFINITIONS[table], "")
-                self.entities[table].install()
+                self.entities[table.split(":")[-1]].install()
             self.entities["__users"].insert({"id": user,
                                              "name": name,
                                              "pwdhash": password_hash,
