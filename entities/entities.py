@@ -276,7 +276,6 @@ class Entity:
                             del(self.fields[field].definition[self.fields[field].definition.index(DBEnums.PRIMARY)])
                             primary = ["DBEnums.PRIMARY"]
                         definition = ",".join([i.__name__ for i in self.fields[field].definition]+primary)
-                    print(definition)
                     Entity.persistent[self.database]["__fields"].insert({"name": self.fields[field].name,
                                                                          "definition": definition,
                                                                          "description": self.fields[field].description,
