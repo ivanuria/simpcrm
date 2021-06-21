@@ -15,17 +15,16 @@ Example of use:
     ...
 """
 
+import datetime
+import re
 import sqlite3
+import threading
 from databases.databases import Data, DBInterface, DBEnums
 from collections import defaultdict, OrderedDict
-import re
-import threading
-import datetime
 
-MEMORY = ":memory:"
-RE = re.compile(r"[a-zA-Z0-9 ]+")
-
-CREATE_TABLE_AS_ANOTHER = "CREATE TABLE AS ANOTHER"
+# Constants
+MEMORY = ":memory:" # For memory database
+RE = re.compile(r"[a-zA-Z0-9 ]+") # Just for search column name and type in schema
 
 def dict_factory(cursor, row): # Stolen from documentation
     d = {}
