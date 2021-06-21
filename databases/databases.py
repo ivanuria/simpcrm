@@ -95,13 +95,13 @@ class DBInterface:
         check_table_exists: check if defined table exists in database
         delete_database: deletes defiend database. Must be overriden
         _create_sql_query: creates an sql query if needed. Must be overriden
-        create_table: creates indicated table
+        create_table: creates indicated table.
         drop_table: deletes indicated table. Must be called from super() on overriding
         select: gets and returns data from table. Must be called from super() on overriding
         insert: inserts data on table. Must be called from super() on overriding
-        update: updates data from table with indicated filtera.
+        update: updates data from table with indicated filter.
             Must be called from super() on overriding
-        delete: deletes data from table with indicated filtera.
+        delete: deletes data from table with indicated filter.
             Must be called from super() on overriding
         alter_table_rename_table: renames table or tree
             Must be called from super() on overriding
