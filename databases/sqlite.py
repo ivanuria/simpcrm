@@ -468,7 +468,16 @@ class SqliteInterface(DBInterface):
             self.cursor.executemany(sql, safe)
         self.conn.commit()
 
-    def update(self, data, table=None, filter=None, database=None):
+    def update(self, data:dcit, table:str=None, filter:dict=None, database:str=None) -> NoReturn:
+        """Updates data in database and table with given filter
+            It prepares from dict in data the lists of values and fields to be
+            used in _create_sql_query
+        Arguments:
+            data: dict with data to be updated
+            filter: filter to use. Filter already set by default
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
+        """
         filter, table, fields, values, database = super().update(data, filter=filter, database=database, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.UPDATE,
                                             table=table,
