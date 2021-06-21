@@ -42,6 +42,57 @@ def dict_factory(cursor:sqlite3.Cursor, row:list) -> dict:
     return d
 
 class SqliteInterface(DBInterface):
+    """Inherited from DBInterface implements sqlite3 connections with a low use
+    of SQL intended.
+
+    Attributes:
+        database: name of the database
+        server: server path
+        table: active table or tree
+        filter: active filter
+        sql_dict: default dictionary to pass to use in inner methods with relevant
+            information. Defaults are:
+                {"table": self.table,
+                 "filter": self.filter,
+                 "method": DBEnums.SELECT,
+                 "fields": [],
+                 "data": [],
+                 "exists":True
+                 }
+    Arguments:
+        database: (str) name of the database
+        server: (str) server path
+        user: (str)  user name if required
+        password: (str) password if required
+        encryption: (str) if exncryption is required -> implementation not defined yet
+    Methods:
+        connect: connects to database with instance defined attributes.
+        disconnect: disconnects from database. Must be overriden
+        set_database: sets database attribute to indicated argument
+        set_table: sets table attribute to indicated table name
+        set_filter:  sets filter attribute to indicated filter dictionary
+        check_table_exists: check if defined table exists in database
+        delete_database: deletes defiend database. Must be overriden
+        _create_sql_query: creates an sql query to use by sqlite3.
+        create_table: creates indicated table
+        drop_table: deletes indicated table.
+        select: gets and returns data from table.
+        insert: inserts data on table.
+        update: updates data from table with indicated filter.
+        delete: deletes data from table with indicated filter.
+        alter_table_rename_table: renames table or tree.
+        alter_table_rename_column: renames column or attribute of a tree.
+        alter_table_add_column: adds column to table or attribute to a tree.
+        alter_table_modify_column: modifies type of data in a column.
+        get_schema: gets data schema.
+        get_primary_key: gets the primary key of a table or tree.
+    Static Methods:
+        _create_filter_query: creates separately a "where" clause. For inner use only.
+        _create_fields_pairing: creates separately a pairing key-value clause.
+            For inner use only.
+        _create_fields_value_for_insert: creates separately a pairing key-value 
+            clause for insertion. For inner use only.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._conn = {}
