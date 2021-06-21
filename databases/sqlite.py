@@ -622,7 +622,17 @@ class SqliteInterface(DBInterface):
             returning[key] = final+prim
         return returning
 
-    def create_table_as_another(self, new_table, filter=None, database=None, table=None, fields=None, exists=True):
+    def create_table_as_another(self, new_table:str, filter:dict=None, database:str=None, table:str=None, fields:list=None, exists:bool=True) -> NoReturn:
+        """Creates new table with indicaed fields and the same content as the
+        active table or specified one.
+        Arguments:
+            new_table: name of the new table
+            filter: filter to apply in the copying
+            database: name of the database
+            table: name of the table to copy
+            fields: list of fields to copy
+            exists: whether to check if table exists or not. True by default.
+        """
         filter, table, fields, database = super().select(filter=filter, database=database, table=table, fields=fields)
         sql, safe = self._create_sql_query(method=DBEnums.SELECT,
                                            table=table,
