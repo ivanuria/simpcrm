@@ -502,9 +502,12 @@ class SqliteInterface(DBInterface):
         self.conn.commit()
 
     #Table Alterations
-    def alter_table_rename_table(self, new_name, table=None, database=None):
-        """
-        Changes name of table
+    def alter_table_rename_table(self, new_name:str, table:str=None, database:str=None) -> NoReturn:
+        """Changes name of table
+        Arguments:
+            new_name: new name for table
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
         """
         table, new_name, database = super().alter_table_rename_table(new_name, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_RENAME_TABLE,
