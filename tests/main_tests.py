@@ -15,9 +15,19 @@ def hash(pwd="testingPassword123"):
 
 class v1_Main(unittest.TestCase):
     def setUp(self):
-        self.main = Main("./test_main_config.ini")
+        self.main = Main(configdbfile="tests\\test_main_config.ini")
         self.user, self.name, self.hash = "admin", "Iván", hash()
         self.main.install(self.user, self.name, self.hash)
 
+    def tearDown(self):
+        self.main.close()
+        os.remove("tests\test.db")
+
     def test_installed(self):
         self.assertTrue(self.main.installed)
+        for i in ["__users", "__roles", "__permissions", "__simpcrm_main"]:
+            self.assertTrue(i in self.main.entities)
+
+    def test_load(self):
+        main = Main(configdbfile="tests\\test_main_config.ini")
+        main.load()

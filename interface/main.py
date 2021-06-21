@@ -73,7 +73,7 @@ def only_permitted(table=None, operation="r"):
     return only_permitted_decorator
 
 class Main:
-    def __init__(self, configdbfile="config\databases.ini"):
+    def __init__(self, configdbfile="config\\databases.ini"):
         """
         Main implementation to separate it from GUI
         """
@@ -82,7 +82,10 @@ class Main:
         self._database = new_db_interface(**self._config["Main DB"])
 
     def __del__(self):
-        self.close()
+        try:
+            self.close()
+        except AttributeError:
+            pass
 
     #static Methods
     @classmethod
@@ -96,8 +99,10 @@ class Main:
                           }
         config = ConfigParser()
         config.read(configdbfile)
+        print(configdbfile, dict(config))
         if "Main DB" in config.sections():
             default_config.update(dict(config))
+
         return default_config
 
     @classmethod
