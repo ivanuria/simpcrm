@@ -43,6 +43,10 @@ class Item(dict):
         return self._entity
 
     @property
+    def lock(self):
+        return self.entity.lock
+
+    @property
     def primary_key(self):
         return self._primary_key
 
