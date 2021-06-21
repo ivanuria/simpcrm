@@ -532,9 +532,13 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self.conn.commit()
 
-    def alter_table_add_column(self, column, column_type, table=None, database=None):
-        """
-        Adds new column in specified table table
+    def alter_table_add_column(self, column:str, column_type:type, table:str=None, database:str=None) -> NoReturn:
+        """Adds new column in table
+        Arguments:
+            column: name of column
+            column_type: python type for this new column
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
         """
         table, column, column_type, database = super().alter_table_add_column(column, column_type, table=table)
         sql, safe = self._create_sql_query(method=DBEnums.ALTER_TABLE_ADD_COLUMN,
@@ -544,9 +548,12 @@ class SqliteInterface(DBInterface):
         self.cursor.execute(sql, safe)
         self.conn.commit()
 
-    def alter_table_drop_column(self, column, table=None, database=None):
-        """
-        Adds new column in specified table table
+    def alter_table_drop_column(self, column:str, table:str=None, database:str=None) -> NoReturn:
+        """Drops columns in table
+        Arguments:
+            column: name of column
+            table: name of table. Table already set by default
+            database: name of database. Database already set by default
         """
         #Although defined in sqlite documentation, clause is not recognized. This will be a little tricky
         table, column, database = super().alter_table_drop_column(column, table=table)
