@@ -317,9 +317,30 @@ class Main:
         else:
             self.new_entity(entity_id, name, fields, description, parent, parent_field, User=user, token=token)
 
-    @only permitted(table="__entities", operation="w")
+    @only_permitted(table="__entities", operation="w")
     def delete_entity(self, entity_id):
         if entity_id.startswith("__"):
             raise RuntimeError("Entity Id not supported")
         elif entity_id in self.entities:
             self.entities[entity_id].uninstall()
+
+    #In Entities operations
+    @only_permitted(operation="r")
+    def get_data(self, entity_id, filter, *, user, token):
+        if entity_id in self.entities:
+            return self.entities[entity_id].get(filter)
+
+    @only_permited(operation="w")
+    def add_data(self, entity_id, dat, *, user, tokena):
+        if entity_id in self.entities:
+            self.entities[entity_id].insert(data)
+
+    @only_permited(operation="w")
+    def replace_data(self, entity_id, filter, data, *, user, token):
+        if entity_id in self.entities:
+            self.entities[entity_id].replace(filter, data)
+
+    @only_permited(operation="w")
+    def delete_data(self, entity_id, filter, *, user, token):
+        if entity_id in self.entities:
+            self.entities[entity_id].delete(filter, data)
