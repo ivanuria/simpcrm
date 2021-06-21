@@ -32,11 +32,11 @@ DEFINITIONS = {"__users": {"id": [str, DBENums.PRIMARY],
                }
 
 DEFAULT_ROLES = [{"id": "admin",
-                  "name": "Administrador",
-                  "description": "Administrador del sistema"},
+                  "name": "Administrator",
+                  "description": "System Administrator"},
                  {"id": "user",
-                  "name": "Usuario",
-                  "desctiption": "Usuario del sistema"}]
+                  "name": "USer",
+                  "desctiption": "System User"}]
 
 EXPIRE_TOKEN = 3600
 
