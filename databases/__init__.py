@@ -11,7 +11,7 @@ from enum import Enum, auto
 class DBTypes(Enum):
     SQLITE = auto()
 
-def new_db_interface(dbtype, server="", user="", password="", encription="", database=""):
+def new_db_interface(*, type, server="", user="", password="", encription="", database=""):
     types = {"sqlite": DBTypes.SQLITE,
              "sqlite3": DBTypes.SQLITE}
     if not isinstance(dbtype, DBTypes) and dbtype in types:

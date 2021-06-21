@@ -77,7 +77,7 @@ class Main:
         Main implementation to separate it from GUI
         """
         self._configdbfile = configdbfile
-        self._config = self.read_configuration(configfile)
+        self._config = self.read_configuration(configdbfile)
         self._database = new_db_interface(**self._config["Main DB"])
         if self.installed is False:
             self.install()
@@ -87,7 +87,7 @@ class Main:
 
     #static Methods
     @classmethod
-    def read_configuration(cls, configfile):
+    def read_configuration(cls, configdbfile):
         default_config = {"Main DB": {"type": "sqlite",
                                      "server": "data.db",
                                      "user": "",
