@@ -21,6 +21,7 @@ import sqlite3
 import threading
 from databases.databases import Data, DBInterface, DBEnums
 from collections import defaultdict, OrderedDict
+from typing import NoReturn
 
 # Constants
 MEMORY = ":memory:" # For memory database
@@ -375,7 +376,7 @@ class SqliteInterface(DBInterface):
         del(self._conn[threading.currentThread()])
 
     # Tables operations
-    def create_table(self, table:str, fields:dict={}, data:list=[]], exists:bool=True, database:str=None) -> NoReturn:
+    def create_table(self, table:str, fields:dict={}, data:list=[], exists:bool=True, database:str=None) -> NoReturn:
         """Creates table with fields definition
             To be implemented in child class.
         Arguments:
