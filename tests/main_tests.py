@@ -3,27 +3,20 @@
 
 VERSION = 0.1
 
-import hashlib
 import os
 import unittest
-from interface import Main
-
-def hash(pwd="testingPassword123"):
-    salt = os.urandom(32)
-    return hashlib.pbkdf2_hmac("sha256", pwd.encode("utf-8"), salt, 100000)
-    # https://nitratine.net/blog/post/how-to-hash-passwords-in-python/
+from interface import Main, hasher
 
 class v1_Main(unittest.TestCase):
     def setUp(self):
         try:
             self.main = Main(configdbfile="tests\\test_main_config.ini")
-            self.user, self.name, self.hash = "admin", "Iván", hash()
+            self.user, self.name, self.hash = "admin", "Iván", hasher("testingPassword123")
             self.main.install(self.user, self.name, self.hash)
+            self.token = self.main.login(self.user, self.hash) #TODO: hash password must be dynamic
         except:
-            try:
-                os.remove("tests\\test.db")
-            except:
-                pass
+            self.tearDown()
+            raise
 
     def tearDown(self):
         self.main.close()
@@ -48,3 +41,6 @@ class v1_Main(unittest.TestCase):
         finally:
             main.close()
             del(main)
+
+    def test_login(self):
+        self.assertTrue(self.main.logged(self.user, self.token))
