@@ -17,7 +17,7 @@ import os
 
 class v1_Fields(unittest.TestCase):
     def setUp(self):
-        self.db = SQLite(server=MEMORY)
+        self.db = SQLite(database=MEMORY)
         self.db.connect()
 
     def tearDown(self):
@@ -43,7 +43,7 @@ class v1_Fields(unittest.TestCase):
 
 class v1_Entity_setup(unittest.TestCase):
     def setUp(self):
-        self.db = SQLite(server=MEMORY)
+        self.db = SQLite(database=MEMORY)
         self.db.connect()
         self.entity = Entity(self.db, "ninini", "ninini", {"foo": str, "bar": int}, "Test entity")
         self.entity.install()
@@ -90,7 +90,7 @@ class v1_Entity_setup(unittest.TestCase):
 
 class v1_Entity_and_defaults(unittest.TestCase):
     def setUp(self):
-        self.db = SQLite(server=MEMORY)
+        self.db = SQLite(database=MEMORY)
         self.db.connect()
         install_persistency(self.db)
         self.entity = Entity(self.db, "ninini", "ninini", {"foo": str, "bar": int}, "Test entity")
@@ -143,7 +143,7 @@ class v1_Entity_and_defaults(unittest.TestCase):
 
 class v1_Item(unittest.TestCase):
     def setUp(self):
-        self.db = SQLite(server="test.db")
+        self.db = SQLite(database="test.db")
         self.db.connect()
         install_persistency(self.db)
         self.loop = asyncio.new_event_loop()

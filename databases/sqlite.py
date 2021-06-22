@@ -374,7 +374,7 @@ class SqliteInterface(DBInterface):
     def connect(self) -> NoReturn:
         """Connects to database with instantation arguments.
         """
-        self._conn[threading.currentThread()] = sqlite3.connect(self._server, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        self._conn[threading.currentThread()] = sqlite3.connect(self._database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self._conn[threading.currentThread()].row_factory = dict_factory
         self._cursor[threading.currentThread()] = self._conn[threading.currentThread()].cursor()
 

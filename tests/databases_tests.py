@@ -12,7 +12,7 @@ from datetime import date, datetime, timedelta
 
 class v1_Databases_sqlite(unittest.TestCase):
     def setUp(self):
-        self.db = SQLite(server="tests\\test.db")
+        self.db = SQLite(database="tests\\test.db")
         self.db.connect()
         self.cursor = self.db.cursor
         self.conn = self.db.conn
