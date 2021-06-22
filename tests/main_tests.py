@@ -43,8 +43,8 @@ class v1_Main(unittest.TestCase):
             main = Main(configdbfile="tests\\test_main_config.ini")
             main.load()
             self.assertTrue(main.installed)
-        except AssertionError:
-            print(main)
+            for i in ["__users", "__roles", "__permissions", "__simpcrm_main"]:
+                self.assertTrue(i in self.main.entities)
         finally:
             main.close()
             del(main)
