@@ -1,10 +1,12 @@
 # Main program
 
+import hashlib
+import os
 from entities import Item, Entity
 from entities.defaults import install_persistency, get_entity, get_entities
 from databases import DBInterface, new_db_interface, DBEnums
 from configparser import ConfigParser
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 VERSION = "0.1"
@@ -40,6 +42,11 @@ DEFAULT_ROLES = [{"id": "admin",
                   "desctiption": "System User"}]
 
 EXPIRE_TOKEN = 3600
+
+def hasher(pwd):
+    salt = os.urandom(32)
+    return hashlib.pbkdf2_hmac("sha256", pwd.encode("utf-8"), salt, 100000)
+    # https://nitratine.net/blog/post/how-to-hash-passwords-in-python/
 
 #Decorator for user permissions:
 def only_permitted(table=None, operation="r"):
@@ -160,11 +167,24 @@ class Main:
             get_entities(self.database)
 
     def logged(self, user, token):
-        user = self.entities["__users"][user]
-        if user["token"] != token or user["expires_at"] < datetime.datetime.now():
+        try:
+            user = self.entities["__users"][user][0]
+        except IndexError:
+            raise RuntimeError("User not found")
+        if user["token"] != token or user["expires_at"] < datetime.now():
             return False
         else:
             return True
+
+    def login(self, user, pwdhash):
+        try:
+            user = self.entities["__users"][user][0]
+        except IndexError:
+            raise RuntimeError("User not found")
+        if user["pwdhash"] == pwdhash:
+            user["token"] = hasher("".join(map(str,(user["id"], pwdhash))))
+            user["expires_at"] = datetime.now() + timedelta(seconds=EXPIRE_TOKEN)
+        return user["token"]
 
     def get_role_children(self, role_id):
         roles = self.entity["__roles"].get()
