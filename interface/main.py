@@ -101,7 +101,6 @@ class Main:
         config.read(configdbfile)
         if "Main DB" in config.sections():
             default_config["Main DB"].update(dict(config["Main DB"]))
-            print(default_config)
         return default_config
 
     @classmethod
