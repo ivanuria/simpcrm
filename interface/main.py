@@ -36,10 +36,12 @@ DEFINITIONS = {"__users": {"id": [str, DBEnums.PRIMARY],
 
 DEFAULT_ROLES = [{"id": "admin",
                   "name": "Administrator",
-                  "description": "System Administrator"},
+                  "description": "System Administrator",
+                  "parent": None},
                  {"id": "user",
                   "name": "User",
-                  "desctiption": "System User"}]
+                  "desctiption": "System User",
+                  "parent": "admin"}]
 
 EXPIRE_TOKEN = 3600
 
@@ -187,16 +189,20 @@ class Main:
         return user["token"]
 
     def get_role_children(self, role_id):
-        roles = self.entity["__roles"].get()
+        roles = self.entities["__roles"].get()
         if isinstance(role_id, str):
             role_id = role_id.split(" ")
-        roles = list(role_id)
+        #roles = list(role_id)
         final_roles = []
+        roles_id = [role["id"] for role in roles]
+        if "admin" in roles_id:
+            final_roles.append("admin")
         while True: #supposedly not a lot of roles and only used by few users
             added = False
             for role in roles:
-                if role["parent"] in roles:
+                if role["parent"] in roles_id:
                     final_roles.append(role["id"])
+                    del(roles_id[roles_id.index(role["parent"])])
                     added = True
             if added is False:
                 break
@@ -207,11 +213,10 @@ class Main:
         if isinstance(roles, str):
             roles = roles.split(" ")
         l_roles = list(roles)
-        n_roles = []
         accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"]).split(" ")
         final_roles = []
-        for role in accepted_roles:
-            if role in l_roles+n_roles:
+        for role in l_roles:
+            if role in accepted_roles:
                 final_roles.append(role)
         return final_roles
 

@@ -44,3 +44,6 @@ class v1_Main(unittest.TestCase):
 
     def test_login(self):
         self.assertTrue(self.main.logged(self.user, self.token))
+
+    def test_get_role_children(self):
+        self.assertEqual(self.main.get_role_children("admin"), ["admin", "user"])
