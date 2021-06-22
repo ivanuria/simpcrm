@@ -3,6 +3,7 @@
 from .fields import Field, Fields
 from .entities import Entity
 from databases.databases import DBInterface, DBEnums
+from datetime import datetime
 
 def persistent(database):
     assert isinstance(database, DBInterface)
