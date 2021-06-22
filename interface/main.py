@@ -190,11 +190,12 @@ class Main:
         roles = self.entity["__roles"].get()
         if isinstance(role_id, str):
             role_id = role_id.split(" ")
-        final_roles = list(role_id)
+        roles = list(role_id)
+        final_roles = []
         while True: #supposedly not a lot of roles and only used by few users
             added = False
             for role in roles:
-                if role["parent"] in final_roles:
+                if role["parent"] in roles:
                     final_roles.append(role["id"])
                     added = True
             if added is False:
