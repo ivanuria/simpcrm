@@ -15,19 +15,36 @@ def hash(pwd="testingPassword123"):
 
 class v1_Main(unittest.TestCase):
     def setUp(self):
-        self.main = Main(configdbfile="tests\\test_main_config.ini")
-        self.user, self.name, self.hash = "admin", "Iván", hash()
-        self.main.install(self.user, self.name, self.hash)
+        try:
+            self.main = Main(configdbfile="tests\\test_main_config.ini")
+            self.user, self.name, self.hash = "admin", "Iván", hash()
+            self.main.install(self.user, self.name, self.hash)
+        except:
+            try:
+                os.remove("tests\\test.db")
+            except:
+                pass
 
     def tearDown(self):
         self.main.close()
         os.remove("tests\\test.db")
 
     def test_installed(self):
-        self.assertTrue(self.main.installed)
+        try:
+            self.assertTrue(self.main.installed)
+        except AssertionError:
+            self.tearDown()
+            raise
         for i in ["__users", "__roles", "__permissions", "__simpcrm_main"]:
             self.assertTrue(i in self.main.entities)
 
     def test_load(self):
-        main = Main(configdbfile="tests\\test_main_config.ini")
-        main.load()
+        try:
+            main = Main(configdbfile="tests\\test_main_config.ini")
+            main.load()
+            self.assertTrue(main.installed)
+        except AssertionError:
+            print(main)
+        finally:
+            main.close()
+            del(main)

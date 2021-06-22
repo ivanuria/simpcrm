@@ -87,6 +87,9 @@ class Main:
         except AttributeError:
             pass
 
+    def __str__(self):
+        return " - ".join((str(self._config), str(self.entities)))
+
     #static Methods
     @classmethod
     def read_configuration(cls, configdbfile):
@@ -123,7 +126,7 @@ class Main:
     def installed(self):
         try:
             get_entity(self.database, "__simpcrm_main")
-        except:
+        except Exception as e:
             return False
         else:
             return True
@@ -154,7 +157,7 @@ class Main:
 
     def load(self):
         if self.installed is True:
-            self.entities = get_entities(self.database)
+            get_entities(self.database)
 
     def logged(self, user, token):
         user = self.entities["__users"][user]
