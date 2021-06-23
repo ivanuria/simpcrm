@@ -1,5 +1,8 @@
 from databases import DBEnums
 from datetime import datetime
+import hashlib
+import os
+
 def hasher(pwd, salt=os.urandom(32)):
     if isinstance(salt, str):
         salt = salt.encode("utf-8")
@@ -50,7 +53,58 @@ DEFAULT_ROLES = [{"id": "admin",
                   "description": "IT User",
                   "parent": "itmanager"}]
 
-DEFAULT_PERMISSIONS = [{"entity"}]
+DEFAULT_PERMISSIONS = [{"entity": "__users",
+                        "operation": "r",
+                        "permitted": True,
+                        "__roles_id": "admin"},
+                       {"entity": "__users",
+                        "operation": "w",
+                        "permitted": True,
+                        "__roles_id": "admin"},
+                       {"entity": "__users",
+                        "operation": "r",
+                        "permitted": True,
+                        "__roles_id": "manager"},
+                       {"entity": "__users",
+                        "operation": "w",
+                        "permitted": True,
+                        "__roles_id": "manager"},
+                       {"entity": "__users",
+                        "operation": "r",
+                        "permitted": True,
+                        "__roles_id": "itmanager"},
+                       {"entity": "__users",
+                        "operation": "w",
+                        "permitted": True,
+                        "__roles_id": "itmanager"},
+                       {"entity": "__roles",
+                        "operation": "r",
+                        "permitted": True,
+                        "__roles_id": "admin"},
+                       {"entity": "__permissions",
+                        "operation": "w",
+                        "permitted": True,
+                        "__roles_id": "admin"},
+                       {"entity": "__permissions",
+                        "operation": "r",
+                        "permitted": True,
+                        "__roles_id": "manager"},
+                       {"entity": "__permissions",
+                        "operation": "w",
+                        "permitted": True,
+                        "__roles_id": "manager"},
+                       {"entity": "__permissions",
+                        "operation": "r",
+                        "permitted": True,
+                        "__roles_id": "itmanager"},
+                       {"entity": "__permissions",
+                        "operation": "w",
+                        "permitted": True,
+                        "__roles_id": "itmanager"},
+                       {"entity": "__permissions",
+                        "operation": "r",
+                        "permitted": True,
+                        "__roles_id": "admin"}]
 
 DEFAULT_PWD = "simp123"
 
