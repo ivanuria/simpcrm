@@ -11,6 +11,12 @@ from functools import wraps
 
 VERSION = "0.1"
 
+def hasher(pwd, salt=os.urandom(32)):
+    if isinstance(salt, str):
+        salt = salt.encode("utf-8")
+    return hashlib.pbkdf2_hmac("sha256", pwd.encode("utf-8"), salt, 100000)
+    # https://nitratine.net/blog/post/how-to-hash-passwords-in-python/
+
 DEFINITIONS = {"__users": {"id": [str, DBEnums.PRIMARY],
                            "name": str,
                            "pwdhash": str,
@@ -38,17 +44,57 @@ DEFAULT_ROLES = [{"id": "admin",
                   "name": "Administrator",
                   "description": "System Administrator",
                   "parent": None},
+                 {"id": "manager",
+                  "name": "Manager",
+                  "description": "Production Manager",
+                  "parent": "admin"},
                  {"id": "user",
                   "name": "User",
                   "desctiption": "System User",
-                  "parent": "admin"}]
+                  "parent": "manager"},
+                 {"id": "itmanager",
+                  "name": "IT Manager",
+                  "description": "IT Team Manager",
+                  "parent": "admin"},
+                 {"id": "ituser",
+                  "name": "IT User",
+                  "description": "IT User",
+                  "parent": "itmanager"}]
+
+DEFAULT_PWD = "simp123"
+
+DEFAULT_USERS = [{"id": "opm001",
+                  "name": "Manager 1",
+                  "pwdhash": hasher(DEFAULT_PWD, "opm001"),
+                  "token": "",
+                  "roles": "manager user"},
+                 {"id": "op001",
+                  "name": "Operator 1",
+                  "pwdhash": hasher(DEFAULT_PWD, "op001"),
+                  "token": "",
+                  "roles": "user"},
+                 {"id": "op002",
+                  "name": "Operator 2",
+                  "pwdhash": hasher(DEFAULT_PWD, "op002"),
+                  "token": "",
+                  "roles": "user"},
+                 {"id": "itm001",
+                  "name": "IT Manager 1",
+                  "pwdhash": hasher(DEFAULT_PWD, "itm001"),
+                  "token": "",
+                  "roles": "itmanager ituser"},
+                 {"id": "it001",
+                  "name": "IT User 1",
+                  "pwdhash": hasher(DEFAULT_PWD, "it001"),
+                  "token": "",
+                  "roles": "ituser"},
+                 {"id": "it002",
+                  "name": "IT User 2",
+                  "pwdhash": hasher(DEFAULT_PWD, "it002"),
+                  "token": "",
+                  "roles": "ituser"}]
 
 EXPIRE_TOKEN = 3600
-
-def hasher(pwd):
-    salt = os.urandom(32)
-    return hashlib.pbkdf2_hmac("sha256", pwd.encode("utf-8"), salt, 100000)
-    # https://nitratine.net/blog/post/how-to-hash-passwords-in-python/
 
 #Decorator for user permissions:
 def only_permitted(table=None, operation="r"):
@@ -153,6 +199,7 @@ class Main:
                                              "name": name,
                                              "pwdhash": password_hash,
                                              "roles": "admin"})
+            self.entities["__users"].insert(DEFAULT_USERS)
             self.entities["__roles"].insert(DEFAULT_ROLES)
             permissions = []
             for role, perm in (("admin", True), ("user", False)):
@@ -194,15 +241,15 @@ class Main:
             role_id = role_id.split(" ")
         #roles = list(role_id)
         final_roles = []
-        roles_id = [role["id"] for role in roles]
-        if "admin" in roles_id:
+        #roles_id = [role["id"] for role in roles]
+        if "admin" in role_id:
             final_roles.append("admin")
         while True: #supposedly not a lot of roles and only used by few users
             added = False
-            for role in roles:
-                if role["parent"] in roles_id:
+            for role in roles.copy():
+                if role["parent"] in role_id+final_roles:
                     final_roles.append(role["id"])
-                    del(roles_id[roles_id.index(role["parent"])])
+                    del(roles[roles.index(role)])
                     added = True
             if added is False:
                 break
@@ -213,7 +260,7 @@ class Main:
         if isinstance(roles, str):
             roles = roles.split(" ")
         l_roles = list(roles)
-        accepted_roles = self.get_role_children(self.entity["__users"][user]["roles"]).split(" ")
+        accepted_roles = self.get_role_children(self.entities["__users"][user][0]["roles"])
         final_roles = []
         for role in l_roles:
             if role in accepted_roles:

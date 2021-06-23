@@ -46,4 +46,18 @@ class v1_Main(unittest.TestCase):
         self.assertTrue(self.main.logged(self.user, self.token))
 
     def test_get_role_children(self):
-        self.assertEqual(self.main.get_role_children("admin"), ["admin", "user"])
+        self.assertEqual(self.main.get_role_children("admin"), ["admin", "manager", "user", "itmanager", "ituser"])
+        self.assertEqual(self.main.get_role_children("manager"), ["user"])
+        self.assertEqual(self.main.get_role_children("user"), [])
+        self.assertEqual(self.main.get_role_children("itmanager"), ["ituser"])
+        self.assertEqual(self.main.get_role_children("ituser"), [])
+
+    def test_check_permitted_roles(self):
+        roles = ["admin", "manager", "user", "itmanager", "ituser"]
+        self.assertEqual(self.main.check_permitted_roles("admin", roles), roles)
+        self.assertEqual(self.main.check_permitted_roles("opm001", roles), ["user"])
+        self.assertEqual(self.main.check_permitted_roles("op001", roles), [])
+        self.assertEqual(self.main.check_permitted_roles("op002", roles), [])
+        self.assertEqual(self.main.check_permitted_roles("itm001", roles), ["ituser"])
+        self.assertEqual(self.main.check_permitted_roles("it001", roles), [])
+        self.assertEqual(self.main.check_permitted_roles("it002", roles), [])
