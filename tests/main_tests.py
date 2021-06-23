@@ -61,3 +61,6 @@ class v1_Main(unittest.TestCase):
         self.assertEqual(self.main.check_permitted_roles("itm001", roles), ["ituser"])
         self.assertEqual(self.main.check_permitted_roles("it001", roles), [])
         self.assertEqual(self.main.check_permitted_roles("it002", roles), [])
+
+    def test_only_permitted(self):
+        pass
