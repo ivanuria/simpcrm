@@ -6,6 +6,8 @@ VERSION = 0.1
 import os
 import unittest
 from interface import Main, hasher
+from interface.main import only_permitted
+from interface.defaults import DEFAULT_USERS
 
 class v1_Main(unittest.TestCase):
     def setUp(self):
@@ -63,4 +65,31 @@ class v1_Main(unittest.TestCase):
         self.assertEqual(self.main.check_permitted_roles("it002", roles), [])
 
     def test_only_permitted(self):
-        pass
+        def datest(*args, **kwargs):
+            return True
+        test_dict = {"admin": True,
+                     "opm001": True,
+                     "op001": False,
+                     "op002": False,
+                     "itm001": True,
+                     "it001": False,
+                     "it002": False}
+        for user in test_dict:
+            if user == "admin":
+                token = self.token
+            else:
+                for i in DEFAULT_USERS:
+                    if i["id"] == user:
+                        token = self.main.login(user, i["token"])
+            value = test_dict[user]
+            for table in ["__users", "__roles", "__permissions"]:
+                for perm in ["r", "w"]:
+                    with self.subTest(user=user, value=value, table=table, perm=perm, token=token):
+                        if value is True:
+                            self.assertTrue(only_permitted(table=table, op=perm)
+                                                          (datest) #only_permitted_decorator
+                                                          (self, user=user, token=token)) #only_permitted_wrapper
+                        else:
+                            self.assertFalse(only_permitted(table=table, op=perm)
+                                                           (datest) #only_permitted_decorator
+                                                           (self, user=user, token=token)) #only_permitted_wrapper
