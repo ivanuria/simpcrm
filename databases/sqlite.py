@@ -23,9 +23,12 @@ from databases.databases import Data, DBInterface, DBEnums
 from collections import defaultdict, OrderedDict
 from typing import NoReturn
 
+#Converters
+sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
+
 # Constants
 MEMORY = ":memory:" # For memory database
-RE = re.compile(r"[a-zA-Z0-9 ]+") # Just for search column name and type in schema
+RE = re.compile(r"[a-zA-Z0-9 ]+") # Just for search column name and type in
 
 def dict_factory(cursor:sqlite3.Cursor, row:list) -> dict:
     """Factory to transform fetching list to dictionary.
@@ -208,6 +211,7 @@ class SqliteInterface(DBInterface):
                                 float: "REAL",
                                 None: "NULL",
                                 object: "BLOB",
+                                bool: "BOOLEAN",
                                 datetime.datetime: "timestamp",
                                 datetime.date: "date"})
             for index, item in enumerate(pairs):
