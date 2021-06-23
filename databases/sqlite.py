@@ -167,8 +167,8 @@ class SqliteInterface(DBInterface):
             if values[i][0] == " IN " and isinstance(values[i][1], (list, tuple)):
                 to_f = []
                 for k, v in enumerate(values[i][1]):
-                    dakey = ":filter"+key+"value"+str(i)+"in"+str(k)
-                    to_f.append(dakey)
+                    dakey = "filter"+key+"value"+str(i)+"in"+str(k)
+                    to_f.append(":"+dakey)
                     safe[dakey] = values[i][1][k]
                 f.append(key+values[i][0]+"("+", ".join(to_f)+")")
             else:
@@ -177,7 +177,6 @@ class SqliteInterface(DBInterface):
         #string = " and ".join([key+values[i][0]+":filter"+key+"value"+str(i) for i, key in enumerate(keys)])
         string = " and ".join(f)
         string = "WHERE {}".format(string)
-        print(string, safe)
         return string, safe
 
     @classmethod
