@@ -170,13 +170,14 @@ class SqliteInterface(DBInterface):
                     dakey = ":filter"+key+"value"+str(i)+"in"+str(k)
                     to_f.append(dakey)
                     safe[dakey] = values[i][1][k]
-                f.append("("+", ".join(to_f)+")")
+                f.append(key+values[i][0]+"("+", ".join(to_f)+")")
             else:
-                f.append(":filter"+key+"value"+str(i))
+                f.append(key+values[i][0]+":filter"+key+"value"+str(i))
                 safe["filter"+key+"value"+str(i)] = values[i][1]
-        string = " and ".join([key+values[i][0]+":filter"+key+"value"+str(i) for i, key in enumerate(keys)])
+        #string = " and ".join([key+values[i][0]+":filter"+key+"value"+str(i) for i, key in enumerate(keys)])
+        string = " and ".join(f)
         string = "WHERE {}".format(string)
-
+        print(string, safe)
         return string, safe
 
     @classmethod
