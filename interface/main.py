@@ -17,20 +17,24 @@ EXPIRE_TOKEN = 3600
 def only_permitted(table=None, operation="r"):
     def only_permitted_decorator(func):
         @wraps(func)
-        def only_permitted_wrapper(self, *args, **kwargs):
+        def only_permitted_wrapper(self, *args, table=table, operation=operation, **kwargs):
             if self.installed is False:
                 raise RuntimeError("Not installed yet")
             if all([i in kwargs for i in ["user", "token"]]):
                 user, token = kwargs["user"], kwargs["token"]
                 if table is None and not "table" in kwargs:
                     raise AttributeError("Table not found")
-                else:
+                elif table is None:
                     table = kwargs["table"]
                 #map(del, [kwargs["user"], kwargs["token"]])
                 if self.logged(user, token) is False:
                     raise RuntimeError("Unauthorised: may login again")
                 else:
                     user = self.entities["__users"][user]
+                    if not user:
+                        raise RuntimeError("User not found")
+                    else:
+                        user = user[0]
                     roles = user["roles"].split(" ")
                     authorising = self.entities["__permissions"].get({"entity": table,
                                                                       "operation": operation,

@@ -80,16 +80,17 @@ class v1_Main(unittest.TestCase):
             else:
                 for i in DEFAULT_USERS:
                     if i["id"] == user:
-                        token = self.main.login(user, i["token"])
+                        token = self.main.login(user, i["pwdhash"])
             value = test_dict[user]
             for table in ["__users", "__roles", "__permissions"]:
                 for perm in ["r", "w"]:
                     with self.subTest(user=user, value=value, table=table, perm=perm, token=token):
                         if value is True:
-                            self.assertTrue(only_permitted(table=table, op=perm)
+                            self.assertTrue(only_permitted(table=table, operation=perm)
                                                           (datest) #only_permitted_decorator
-                                                          (self, user=user, token=token)) #only_permitted_wrapper
+                                                          (self.main, user=user, token=token)) #only_permitted_wrapper
                         else:
-                            self.assertFalse(only_permitted(table=table, op=perm)
-                                                           (datest) #only_permitted_decorator
-                                                           (self, user=user, token=token)) #only_permitted_wrapper
+                            with self.assertRaises(RuntimeError):
+                                (only_permitted(table=table, operation=perm)
+                                               (datest) #only_permitted_decorator
+                                               (self.main, user=user, token=token)) #only_permitted_wrapper
