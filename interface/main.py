@@ -70,16 +70,20 @@ class Main:
     @classmethod
     def read_configuration(cls, configdbfile):
         default_config = {"Main DB": {"engine": "sqlite",
-                                     "server": "data.db",
+                                     "server": "",
                                      "user": "",
                                      "password": "",
                                      "encryption": "",
-                                     "database": ""}
+                                     "database": "data.db"}
                           }
         config = ConfigParser()
         config.read(configdbfile)
         if "Main DB" in config.sections():
             default_config["Main DB"].update(dict(config["Main DB"]))
+        default_config["Main DB"]["database"] = default_config["Main DB"]["database"].split("\\")
+        final = []
+        default_config["Main DB"]["database"] = [final.extend(i.split("/")) for i in default_config["Main DB"]["database"]]
+        default_config["Main DB"]["database"] = os.path.join(*final)
         return default_config
 
     @classmethod

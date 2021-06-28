@@ -12,7 +12,7 @@ from interface.defaults import DEFAULT_USERS
 class v1_Main(unittest.TestCase):
     def setUp(self):
         try:
-            self.main = Main(configdbfile="tests\\test_main_config.ini")
+            self.main = Main(configdbfile=os.path.join("tests", "test_main_config.ini"))
             self.user, self.name, self.hash = "admin", "Iván", hasher("testingPassword123")
             self.main.install(self.user, self.name, self.hash)
             self.token = self.main.login(self.user, self.hash) #TODO: hash password must be dynamic
@@ -22,7 +22,7 @@ class v1_Main(unittest.TestCase):
 
     def tearDown(self):
         self.main.close()
-        os.remove("tests\\test.db")
+        os.remove(os.path.join("tests", "test.db"))
 
     def test_installed(self):
         try:
@@ -35,7 +35,7 @@ class v1_Main(unittest.TestCase):
 
     def test_load(self):
         try:
-            main = Main(configdbfile="tests\\test_main_config.ini")
+            main = Main(configdbfile=os.path.join("tests", "test_main_config.ini"))
             main.load()
             self.assertTrue(main.installed)
             for i in ["__users", "__roles", "__permissions", "__simpcrm_main"]:
