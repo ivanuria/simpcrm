@@ -82,7 +82,7 @@ class v1_Main(unittest.TestCase):
                     if i["id"] == user:
                         token = self.main.login(user, i["pwdhash"])
             value = test_dict[user]
-            for table in ["__users", "__roles", "__permissions"]:
+            for table in ["__users", "__roles", "__permissions", "__entities"]:
                 for perm in ["r", "w"]:
                     with self.subTest(user=user, value=value, table=table, perm=perm, token=token):
                         if value is True:
@@ -94,3 +94,23 @@ class v1_Main(unittest.TestCase):
                                 (only_permitted(table=table, operation=perm)
                                                (datest) #only_permitted_decorator
                                                (self.main, user=user, token=token)) #only_permitted_wrapper
+
+    def test_new_entity(self):
+        self.main.new_entity("customers",
+                             "Customers",
+                             {"name": str,
+                              "age": int,
+                              "gender": str},
+                             "Keep your customers satisfied",
+                             user=self.user, token=self.token)
+        self.main.add_data("customers",
+                           [{"name": "Lola",
+                            "age": 23,
+                            "gender": "NB"},
+                            {"name": "Chelo",
+                             "age": 56,
+                             "gender": "Male"},
+                            {"name": "Austin",
+                             "age": 5,
+                             "gender": "NS/NC"}],
+                           user=self.user, token=self.token)

@@ -316,14 +316,16 @@ class Main:
 
     # Entities creation
     @only_permitted(table="__entities", operation="w")
-    def new_entity(self, entity_id, name, fields, description, parent, parent_field, *, user, token):
+    def new_entity(self, entity_id, name, fields, description, parent="", parent_field="", *, user, token):
         if entity_id in self.entities:
             raise RuntimeError("Entity already defined")
         elif entity_id.startswith("__"):
             raise RuntimeError("Entity Id not supported")
         else:
             assert all([key in fields for key in ["name", "definition", "description", "table_name"]])
-            self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description, loop=self._loop)
+            self.entities[entity_id] = Entity(self._database, entity_id, name,
+                                              fields, description, parent,
+                                              parent_field, loop=self._loop)
             self.entities[entity_id].install()
 
     @only_permitted(table="__entities", operation="w")
@@ -361,7 +363,7 @@ class Main:
             return self.entities[entity_id].get(filter)
 
     @only_permitted(operation="w")
-    def add_data(self, entity_id, dat, *, user, tokena):
+    def add_data(self, entity_id, dat, *, user, token):
         if entity_id in self.entities:
             self.entities[entity_id].insert(data)
 
