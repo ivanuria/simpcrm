@@ -1,6 +1,9 @@
 # Main program
 
+import asyncio
 import os
+import threading
+import time
 from entities import Item, Entity
 from entities.defaults import install_persistency, get_entity, get_entities
 from databases import DBInterface, new_db_interface, DBEnums
@@ -56,11 +59,14 @@ class Main:
         self._configdbfile = configdbfile
         self._config = self.read_configuration(configdbfile)
         self._database = new_db_interface(**self._config["Main DB"])
+        self._loop = asyncio.new_event_loop()
+        self._thread = threading.Thread(target=self._loop.run_forever)
+        self._thread.start()
 
     def __del__(self):
         try:
             self.close()
-        except AttributeError:
+        except (AttributeError, RuntimeError): #In case it's already closed or not opened
             pass
 
     def __str__(self):
@@ -113,12 +119,19 @@ class Main:
 
     def close(self):
         self.database.disconnect()
+        self._loop.call_soon_threadsafe(self._loop.stop)
+        while True:
+            if self._loop.is_running() is False:
+                self._loop.close()
+                break
+            time.sleep(1)
+        self._thread.join()
 
     def install(self, user, name, password_hash):
         if self.installed is False:
             install_persistency(self.database)
             for table in DEFINITIONS:
-                Entity(self.database, table, table, DEFINITIONS[table], "")
+                Entity(self.database, table, table, DEFINITIONS[table], "", loop=self._loop)
                 self.entities[table.split(":")[-1]].install()
             self.entities["__users"].insert({"id": user,
                                              "name": name,
@@ -139,7 +152,7 @@ class Main:
 
     def load(self):
         if self.installed is True:
-            get_entities(self.database)
+            get_entities(self.database, loop=self._loop)
 
     def logged(self, user, token):
         try:
@@ -310,7 +323,7 @@ class Main:
             raise RuntimeError("Entity Id not supported")
         else:
             assert all([key in fields for key in ["name", "definition", "description", "table_name"]])
-            self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description)
+            self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description, loop=self._loop)
             self.entities[entity_id].install()
 
     @only_permitted(table="__entities", operation="w")
@@ -330,7 +343,7 @@ class Main:
                 self.entities[entity_id].change_fields(to_change) # Safaty first even if it makes this slower
             if to_add:
                 self.entities[entity_id].add_fields(to_add)
-            self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description)
+            self.entities[entity_id] = Entity(self._database, entity_id, name, fields, description, loop=self._loop)
         else:
             self.new_entity(entity_id, name, fields, description, parent, parent_field, User=user, token=token)
 

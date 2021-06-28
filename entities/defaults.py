@@ -5,7 +5,7 @@ from .entities import Entity
 from databases.databases import DBInterface, DBEnums
 from datetime import datetime
 
-def persistent(database):
+def persistent(database, *, loop=None):
     assert isinstance(database, DBInterface)
     ent_fields = Fields(database, "__entities",
                     {"name": str,
@@ -15,7 +15,8 @@ def persistent(database):
                      "parent_field": str})
     entity = Entity(database, "__entities", "Entities",
                     ent_fields,
-                    "Entities description")
+                    "Entities description",
+                    loop=loop)
 
     field_fields = Fields(database, "__fields",
                           {"name": str,
@@ -26,10 +27,11 @@ def persistent(database):
                           field_fields,
                           "Fields Description",
                           entity,
-                          "table")
+                          "table",
+                          loop=loop)
     return entity, fields_entity
 
-def get_entity(database, table, ent=None):
+def get_entity(database, table, ent=None, *, loop=None):
     if database in Entity.persistent and table in Entity.persistent[database]:
         return Entity.persistent[database][table]
     entity, fields_entity = persistent(database)
@@ -39,12 +41,12 @@ def get_entity(database, table, ent=None):
     if ent is None:
         ent = entity.get({"table_name": table})[0]
     if ent:#TODO: raise especial exception if not exists
-        return Entity(database, ent["table_name"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"])
+        return Entity(database, ent["table_name"], ent["name"], fields, ent["description"], parent=ent["parent"], parent_field=ent["parent_field"], loop=loop)
     else:
         return None
 
-def get_entities(database):
-    entity, fields_entity = persistent(database)
+def get_entities(database, *, loop=None):
+    entity, fields_entity = persistent(database, loop=loop)
     entities_list = entity.get({})
     final = {}
     for ent in entities_list:
