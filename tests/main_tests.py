@@ -25,7 +25,7 @@ class v1_Main(unittest.TestCase):
         self.main.close()
         os.remove(os.path.join("tests", "test.db"))
 
-    def test_installed(self):
+    def test_01_installed(self):
         try:
             self.assertTrue(self.main.installed)
         except AssertionError:
@@ -34,7 +34,7 @@ class v1_Main(unittest.TestCase):
         for i in ["__users", "__roles", "__permissions", "__simpcrm_main"]:
             self.assertTrue(i in self.main.entities)
 
-    def test_load(self):
+    def test_02_load(self):
         try:
             main = Main(configdbfile=os.path.join("tests", "test_main_config.ini"))
             main.load()
@@ -45,17 +45,17 @@ class v1_Main(unittest.TestCase):
             main.close()
             del(main)
 
-    def test_login(self):
+    def test_03_login(self):
         self.assertTrue(self.main.logged(self.user, self.token))
 
-    def test_get_role_children(self):
+    def test_04_get_role_children(self):
         self.assertEqual(self.main.get_role_children("admin"), ["admin", "manager", "user", "itmanager", "ituser"])
         self.assertEqual(self.main.get_role_children("manager"), ["user"])
         self.assertEqual(self.main.get_role_children("user"), [])
         self.assertEqual(self.main.get_role_children("itmanager"), ["ituser"])
         self.assertEqual(self.main.get_role_children("ituser"), [])
 
-    def test_check_permitted_roles(self):
+    def test_05_check_permitted_roles(self):
         roles = ["admin", "manager", "user", "itmanager", "ituser"]
         self.assertEqual(self.main.check_permitted_roles("admin", roles), roles)
         self.assertEqual(self.main.check_permitted_roles("opm001", roles), ["user"])
@@ -65,7 +65,7 @@ class v1_Main(unittest.TestCase):
         self.assertEqual(self.main.check_permitted_roles("it001", roles), [])
         self.assertEqual(self.main.check_permitted_roles("it002", roles), [])
 
-    def test_only_permitted(self):
+    def test_06_only_permitted(self):
         def datest(*args, **kwargs):
             return True
         test_dict = {"admin": True,
@@ -95,6 +95,18 @@ class v1_Main(unittest.TestCase):
                                 (only_permitted(table=table, operation=perm)
                                                (datest) #only_permitted_decorator
                                                (self.main, user=user, token=token)) #only_permitted_wrapper
+
+    def test_07_get_self_permissions(self):
+        permissions = self.main.get_self_permissions(user=self.user, token=self.token)
+        self.assertEqual(permissions,
+                         {"__users": {"r": True,
+                                      "w": True},
+                          "__roles": {"r": True,
+                                      "w": True},
+                          "__permissions": {"r": True,
+                                            "w": True},
+                          "__entities": {"r": True,
+                                         "w": True}})
 
     def test_new_entity(self):
         self.main.new_entity("customers",
