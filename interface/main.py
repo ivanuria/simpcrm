@@ -269,7 +269,7 @@ class Main:
         permitted_changes = self.get_self_permissions(user=user, token=token)
         for key in permissions:
             if key in permitted_changes and permitted_changes[key]["permitted"] is True:
-                assert all([k in permissions[key] for k in ["entity", "operation", "permitted"]])
+                assert all([k in permissions[key] for k in ["entity", "operation", "permitted"]]) #TODO: Check this, It's nonsense
                 permitted_changes[key] = permissions[key]
         return permitted_changes
 
@@ -292,10 +292,15 @@ class Main:
         if role_id == "admin":
             raise RuntimeError("Operation not permitted")
         permitted_changes = self.get_permmited_permissions_changes(user, permissions)
-        if not self.entities["__roles"][role_id]:
+        this_role = self.entities["__roles"][role_id]
+        if not this_role:
             self.new_role(role_id, description, parent, permissions, user=user, token=token)
             #By now any attempt of changing a non existing role will create
         else:
+            if description is None:
+                description = this_role[0]["description"]
+            if parent is None:
+                parent = this_role[0]["parent"]
             self.entities["__roles"][role_id] = {"description": description,
                                                  "parent": parent}
             for perm in permitted_changes:

@@ -114,3 +114,5 @@ class v1_Main(unittest.TestCase):
                              "age": 5,
                              "gender": "NS/NC"}],
                            user=self.user, token=self.token)
+        for role in ["admin", "manager", "user"]:
+            self.main.modify_role(role, None, None, {}, user=self.user, token=self.token)
