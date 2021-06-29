@@ -148,11 +148,7 @@ DEFAULT_PERMISSIONS = [{"entity": "__users",
                        {"entity": "__entities",
                         "operation": "w",
                         "permitted": True,
-                        "__roles_id": "itmanager"},
-                       {"entity": "__entities",
-                        "operation": "r",
-                        "permitted": True,
-                        "__roles_id": "admin"}]
+                        "__roles_id": "itmanager"}]
 
 DEFAULT_PWD = "simp123"
 
