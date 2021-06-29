@@ -276,7 +276,7 @@ class Main:
             ent = i["entity"]
             op = i["operation"]
             if ent in permitted_changes and permitted_changes[ent][op] is True:
-                final.append(permissions[key])
+                final.append(i)
         return final
 
     @only_permitted(table="__permissions", operation="w")
