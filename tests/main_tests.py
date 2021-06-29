@@ -5,6 +5,7 @@ VERSION = 0.1
 
 import os
 import unittest
+from entities import Entity
 from interface import Main, hasher
 from interface.main import only_permitted
 from interface.defaults import DEFAULT_USERS
@@ -103,6 +104,11 @@ class v1_Main(unittest.TestCase):
                               "gender": str},
                              "Keep your customers satisfied",
                              user=self.user, token=self.token)
+        for role in ["admin", "manager", "user"]:
+            permissions = [{"entity": "customers", "operation": "r", "permitted": True},
+                           {"entity": "customers", "operation": "w", "permitted": True}]
+            self.main.modify_role(role, None, None, permissions, user=self.user, token=self.token)
+        print(Entity.persistent[self.main.database]["__permissions"].get({"entity": "customers"}))
         self.main.add_data("customers",
                            [{"name": "Lola",
                             "age": 23,
@@ -114,7 +120,3 @@ class v1_Main(unittest.TestCase):
                              "age": 5,
                              "gender": "NS/NC"}],
                            user=self.user, token=self.token)
-        for role in ["admin", "manager", "user"]:
-            permissions = [{"entity": "customers", "operation": "r", "permited": True},
-                           {"entity": "customers", "operation": "w", "permited": True}]
-            self.main.modify_role(role, None, None, permissions, user=self.user, token=self.token)

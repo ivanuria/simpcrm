@@ -7,6 +7,7 @@ import time
 from entities import Item, Entity
 from entities.defaults import install_persistency, get_entity, get_entities
 from databases import DBInterface, new_db_interface, DBEnums
+from collections import defaultdict
 from configparser import ConfigParser
 from datetime import datetime, timedelta
 from functools import wraps
@@ -25,7 +26,9 @@ def only_permitted(table=None, operation="r"):
                 raise RuntimeError("Not installed yet")
             if all([i in kwargs for i in ["user", "token"]]):
                 user, token = kwargs["user"], kwargs["token"]
-                if table is None and not "table" in kwargs:
+                if isinstance(table, int) and len(args) < table:
+                    table = args[table]
+                elif table is None and not "table" in kwargs:
                     raise AttributeError("Table not found")
                 elif table is None:
                     table = kwargs["table"]
@@ -251,34 +254,34 @@ class Main:
         return permissions
 
     def get_self_permissions(self, *, user, token):
-        permissions = defaultdict(lambda: defaultdict(False))
+        permissions = defaultdict(lambda: defaultdict(lambda: False))
         if self.logged(user, token) is False:
             raise RuntimeError("Unauthorised: may login again")
         else:
-            user = self.entities["__users"][user]
+            user = self.entities["__users"][user][0]
             roles = user["roles"].split(" ")
-            authorising = self.entities["__permissions"].get({"entity": table,
-                                                              "operation": operation,
-                                                              "__roles_id": ["IN", roles]})
-        for perm in self.entities["__permissions"].get({"__roles_id": ["IN", self.entities["__users"][user_id]["roles"]]}):
+            authorising = self.entities["__permissions"].get({"__roles_id": ["IN", roles]})
+        for perm in authorising:
             if perm["permitted"] is True:
-                permission[perm["entity"]][perm["operation"]] = perm["permitted"]
+                permissions[perm["entity"]][perm["operation"]] = perm["permitted"]
         return permissions
 
-    def get_permited_permissions_changes(self, user, permissions):
+    def get_permited_permissions_changes(self, user, token, permissions):
         permitted_changes = self.get_self_permissions(user=user, token=token)
         final = []
+        if user == "admin":
+            return permissions
         for i in permissions:
             assert all([item in i for item in ["entity", "operation", "permitted"]])
             ent = i["entity"]
-            for op in permissions[ent]:
-                if ent in permitted_changes and permitted_changes[ent][op] is True:
-                    final.append(permissions[key])
+            op = i["operation"]
+            if ent in permitted_changes and permitted_changes[ent][op] is True:
+                final.append(permissions[key])
         return final
 
     @only_permitted(table="__permissions", operation="w")
     def new_role(self, role_id, description, parent, permissions, *, user, token):
-        permitted_changes = self.get_permited_permissions_changes(user, permissions)
+        permitted_changes = self.get_permited_permissions_changes(user, token, permissions)
         if self.entities["__roles"][role_id]:
             raise RuntimeError("Role already existing")
         else:
@@ -293,8 +296,10 @@ class Main:
     @only_permitted(table="__permissions", operation="w")
     def modify_role(self, role_id, description, parent, permissions, *, user, token):
         if role_id == "admin":
-            raise RuntimeError("Operation not permitted")
-        permitted_changes = self.get_permmited_permissions_changes(user, permissions)
+            for item in permissions.copy():
+                if "entity" in item and item["entity"] in list(DEFINITIONS.keys()):
+                    del permissions[permissions.index(item)]
+        permitted_changes = self.get_permited_permissions_changes(user, token, permissions)
         this_role = self.entities["__roles"][role_id]
         if not this_role:
             self.new_role(role_id, description, parent, permissions, user=user, token=token)
@@ -307,17 +312,18 @@ class Main:
             self.entities["__roles"][role_id] = {"description": description,
                                                  "parent": parent}
             for perm in permitted_changes:
-                this = self.entities["__permissions"].get({"entity": permitted_changes[perm]["entity"],
-                                                           "operation": permitted_changes[perm]["operation"],
+                this = self.entities["__permissions"].get({"entity": perm["entity"],
+                                                           "operation": perm["operation"],
                                                            "__roles_id": role_id})
                 if not this:
-                    self.entities["__permissions"].insert({"entity": permitted_changes[perm]["entity"],
-                                                           "operation": permitted_changes[perm]["operation"],
-                                                           "permitted": permitted_changes[perm]["permitted"],
+                    print("inserting "+str(this))
+                    self.entities["__permissions"].insert({"entity": perm["entity"],
+                                                           "operation": perm["operation"],
+                                                           "permitted": perm["permitted"],
                                                            "__roles_id": role_id})
                 else:
                     self.entities["__permissions"].replace({"id": this[0]["id"]},
-                                                           {"permitted": permitted_changes[perm]["permitted"]})
+                                                           {"permitted": perm["permitted"]})
 
     @only_permitted(table="__permissions", operation="w")
     def delete_role(self, role_id):
@@ -375,22 +381,22 @@ class Main:
             self.entities[entity_id].uninstall()
 
     #In Entities operations
-    @only_permitted(operation="r")
+    @only_permitted(table=0, operation="r")
     def get_data(self, entity_id, filter, *, user, token):
         if entity_id in self.entities:
             return self.entities[entity_id].get(filter)
 
-    @only_permitted(operation="w")
+    @only_permitted(table=0, operation="w")
     def add_data(self, entity_id, dat, *, user, token):
         if entity_id in self.entities:
             self.entities[entity_id].insert(data)
 
-    @only_permitted(operation="w")
+    @only_permitted(table=0, operation="w")
     def replace_data(self, entity_id, filter, data, *, user, token):
         if entity_id in self.entities:
             self.entities[entity_id].replace(filter, data)
 
-    @only_permitted(operation="w")
+    @only_permitted(table=0, operation="w")
     def delete_data(self, entity_id, filter, *, user, token):
         if entity_id in self.entities:
             self.entities[entity_id].delete(filter, data)
