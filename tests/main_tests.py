@@ -108,7 +108,19 @@ class v1_Main(unittest.TestCase):
                           "__entities": {"r": True,
                                          "w": True}})
 
-    def test_new_entity(self):
+    def test_08_get_permited_permissions_changes(self):
+        permissions = [{"entity": "__entities",
+                        "operation": "r",
+                        "permitted": True,
+                        "__roles_id": "itmanager"},
+                       {"entity": "__entities",
+                        "operation": "w",
+                        "permitted": True,
+                        "__roles_id": "itmanager"}]
+        permitted = self.main.get_permited_permissions_changes(self.user, self.token, permissions)
+        self.assertEqual(permissions, permitted)
+
+    def test_09_new_entity(self):
         self.main.new_entity("customers",
                              "Customers",
                              {"name": str,
@@ -120,7 +132,6 @@ class v1_Main(unittest.TestCase):
             permissions = [{"entity": "customers", "operation": "r", "permitted": True},
                            {"entity": "customers", "operation": "w", "permitted": True}]
             self.main.modify_role(role, None, None, permissions, user=self.user, token=self.token)
-        print(Entity.persistent[self.main.database]["__permissions"].get({"entity": "customers"}))
         self.main.add_data("customers",
                            [{"name": "Lola",
                             "age": 23,
