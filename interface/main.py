@@ -299,10 +299,17 @@ class Main:
             self.entities["__roles"][role_id] = {"description": description,
                                                  "parent": parent}
             for perm in permitted_changes:
-                self.entities["__permissions"].insert({"entity": permitted_changes[perm]["entity"],
-                                                       "operation": permitted_changes[perm]["operation"],
-                                                       "permitted": permitted_changes[perm]["permitted"],
-                                                       "__roles_id": role_id})
+                this = self.entities["__permissions"].get({"entity": permitted_changes[perm]["entity"],
+                                                           "operation": permitted_changes[perm]["operation"],
+                                                           "__roles_id": role_id})
+                if not this:
+                    self.entities["__permissions"].insert({"entity": permitted_changes[perm]["entity"],
+                                                           "operation": permitted_changes[perm]["operation"],
+                                                           "permitted": permitted_changes[perm]["permitted"],
+                                                           "__roles_id": role_id})
+                else:
+                    self.entities["__permissions"].replace({"id": this[0]["id"]},
+                                                           {"permitted": permitted_changes[perm]["permitted"]})
 
     @only_permitted(table="__permissions", operation="w")
     def delete_role(self, role_id):
