@@ -115,4 +115,6 @@ class v1_Main(unittest.TestCase):
                              "gender": "NS/NC"}],
                            user=self.user, token=self.token)
         for role in ["admin", "manager", "user"]:
-            self.main.modify_role(role, None, None, {}, user=self.user, token=self.token)
+            permissions = [{"entity": "customers", "operation": "r", "permited": True},
+                           {"entity": "customers", "operation": "w", "permited": True}]
+            self.main.modify_role(role, None, None, permissions, user=self.user, token=self.token)
