@@ -385,7 +385,7 @@ class Main:
             return self.entities[entity_id].get(filter)
 
     @only_permitted(table=0, operation="w")
-    def add_data(self, entity_id, dat, *, user, token):
+    def add_data(self, entity_id, data, *, user, token):
         if entity_id in self.entities:
             self.entities[entity_id].insert(data)
 
