@@ -337,7 +337,10 @@ class Main:
         elif entity_id.startswith("__"):
             raise RuntimeError("Entity Id not supported")
         else:
-            assert all([key in fields for key in ["name", "definition", "description", "table_name"]])
+            if isinstance(fields, (list, tuple)):
+                assert all([key in fields for key in ["name", "definition"]])
+            elif isinstance(fields, dict):
+                assert all([isinstance(fields[key], type) for key in fields])
             self.entities[entity_id] = Entity(self._database, entity_id, name,
                                               fields, description, parent,
                                               parent_field, loop=self._loop)
