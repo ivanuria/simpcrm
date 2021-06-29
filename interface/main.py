@@ -26,13 +26,12 @@ def only_permitted(table=None, operation="r"):
                 raise RuntimeError("Not installed yet")
             if all([i in kwargs for i in ["user", "token"]]):
                 user, token = kwargs["user"], kwargs["token"]
-                if isinstance(table, int) and len(args) < table:
+                if isinstance(table, int) and len(args) > table:
                     table = args[table]
                 elif table is None and not "table" in kwargs:
                     raise AttributeError("Table not found")
                 elif table is None:
                     table = kwargs["table"]
-                #map(del, [kwargs["user"], kwargs["token"]])
                 if self.logged(user, token) is False:
                     raise RuntimeError("Unauthorised: may login again")
                 else:
@@ -316,7 +315,6 @@ class Main:
                                                            "operation": perm["operation"],
                                                            "__roles_id": role_id})
                 if not this:
-                    print("inserting "+str(this))
                     self.entities["__permissions"].insert({"entity": perm["entity"],
                                                            "operation": perm["operation"],
                                                            "permitted": perm["permitted"],
