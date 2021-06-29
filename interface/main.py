@@ -269,7 +269,6 @@ class Main:
         permitted_changes = self.get_self_permissions(user=user, token=token)
         for key in permissions:
             if key in permitted_changes and permitted_changes[key]["permitted"] is True:
-                assert all([k in permissions[key] for k in ["entity", "operation", "permitted"]]) #TODO: Check this, It's nonsense
                 permitted_changes[key] = permissions[key]
         return permitted_changes
 
