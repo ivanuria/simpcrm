@@ -265,7 +265,7 @@ class Main:
                 permission[perm["entity"]][perm["operation"]] = perm["permitted"]
         return permissions
 
-    def get_permmited_permissions_changes(self, user, permissions):
+    def get_permited_permissions_changes(self, user, permissions):
         permitted_changes = self.get_self_permissions(user=user, token=token)
         final = []
         for i in permissions:
