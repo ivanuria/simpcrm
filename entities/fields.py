@@ -63,7 +63,6 @@ class Fields(dict):
             return super().__new__(cls)
 
     def __init__(self, database, table, fields):
-
         super().__init__(self)
         self.persistent[database][table] = self
         self._table = table
@@ -71,6 +70,12 @@ class Fields(dict):
         self._installed = False #To initialize without issues
         if isinstance(fields, dict):
             list(map(lambda x: Field(database, table, x, fields[x]), fields))
+        elif isinstance(fields, (list, tuple)) and
+                        all([isinstance(item, dict) for item in fields]
+                        and all([all([key in item for key in ["name", "definition"]) for item in fields])):
+            for item in fields:
+                description = "description" in item and item["description"] or ""
+                list(map(lambda x: Field(database, table, x["name"], x["definition"], description), fields))
 
     @property
     def database(self):
