@@ -267,10 +267,14 @@ class Main:
 
     def get_permmited_permissions_changes(self, user, permissions):
         permitted_changes = self.get_self_permissions(user=user, token=token)
-        for key in permissions:
-            if key in permitted_changes and permitted_changes[key]["permitted"] is True:
-                permitted_changes[key] = permissions[key]
-        return permitted_changes
+        final = []
+        for i in permissions:
+            assert all([item in i for item in ["entity", "operation", "permitted"]])
+            ent = i["entity"]
+            for op in permissions[ent]:
+                if ent in permitted_changes and permitted_changes[ent][op] is True:
+                    final.append(permissions[key])
+        return final
 
     @only_permitted(table="__permissions", operation="w")
     def new_role(self, role_id, description, parent, permissions, *, user, token):
@@ -281,9 +285,9 @@ class Main:
             self.entities["__roles"][role_id] = {"description": description,
                                                  "parent": parent}
             for perm in permitted_changes:
-                self.entities["__permissions"].insert({"entity": permitted_changes[perm]["entity"],
-                                                       "operation": permitted_changes[perm]["operation"],
-                                                       "permitted": permitted_changes[perm]["permitted"],
+                self.entities["__permissions"].insert({"entity": perm["entity"],
+                                                       "operation": perm["operation"],
+                                                       "permitted": perm["permitted"],
                                                        "__roles_id": role_id})
 
     @only_permitted(table="__permissions", operation="w")
