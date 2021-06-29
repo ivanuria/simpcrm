@@ -278,7 +278,7 @@ class Main:
 
     @only_permitted(table="__permissions", operation="w")
     def new_role(self, role_id, description, parent, permissions, *, user, token):
-        permitted_changes = self.get_permmited_permissions_changes(user, permissions)
+        permitted_changes = self.get_permited_permissions_changes(user, permissions)
         if self.entities["__roles"][role_id]:
             raise RuntimeError("Role already existing")
         else:
