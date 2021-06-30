@@ -157,3 +157,100 @@ class v1_Main(unittest.TestCase):
         self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
                                             user=self.user, token=self.token),
                         [])
+
+    def test_10_new_entity_add_get_replace_delete_user(self):
+        self.main.new_entity("customers",
+                             "Customers",
+                             {"name": str,
+                              "age": int,
+                              "gender": str},
+                             "Keep your customers satisfied",
+                             user=self.user, token=self.token)
+        for role in ["admin", "manager", "user"]:
+            permissions = [{"entity": "customers", "operation": "r", "permitted": True},
+                           {"entity": "customers", "operation": "w", "permitted": True}]
+            self.main.modify_role(role, None, None, permissions, user=self.user, token=self.token)
+        self.main.add_data("customers",
+                           [{"name": "Lola",
+                            "age": 23,
+                            "gender": "NB"},
+                            {"name": "Chelo",
+                             "age": 56,
+                             "gender": "Male"},
+                            {"name": "Austin",
+                             "age": 5,
+                             "gender": "NS/NC"}],
+                           user=self.user, token=self.token)
+        for u in DEFAULT_USERS:
+            user = u["id"]
+            if user == ["opm002", "op001", "op002"]:
+                hash = u["pwdhash"]
+                token = self.main.login(user, hash)
+                self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                                    user=user, token=token),
+                                [{"id": 1, "name": "Lola", "age": 23, "gender": "NB"}])
+                self.main.replace_data("customers", {"name": "Lola"},
+                                       {"gender": "Male", "age": 54},
+                                       user=user, token=token)
+                self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                                    user=user, token=token),
+                                [{"id": 1, "name": "Lola", "age": 54, "gender": "Male"}])
+                self.main.delete_data("customers", {"name": "Lola"},
+                                       user=user, token=token)
+                self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                                    user=user, token=token),
+                                [])
+                break
+            else:
+                continue
+
+    def test_11_new_entity_add_get_replace_delete_user(self):
+        self.main.new_entity("customers",
+                             "Customers",
+                             {"name": str,
+                              "age": int,
+                              "gender": str},
+                             "Keep your customers satisfied",
+                             user=self.user, token=self.token)
+        for role in ["admin", "manager", "user"]:
+            permissions = [{"entity": "customers", "operation": "r", "permitted": True},
+                           {"entity": "customers", "operation": "w", "permitted": True}]
+            self.main.modify_role(role, None, None, permissions, user=self.user, token=self.token)
+        self.main.add_data("customers",
+                           [{"name": "Lola",
+                            "age": 23,
+                            "gender": "NB"},
+                            {"name": "Chelo",
+                             "age": 56,
+                             "gender": "Male"},
+                            {"name": "Austin",
+                             "age": 5,
+                             "gender": "NS/NC"}],
+                           user=self.user, token=self.token)
+        for u in DEFAULT_USERS:
+            user = u["id"]
+            if user in ["itm002", "it001", "it002"]:
+                hash = u["pwdhash"]
+                token = self.main.login(user, hash)
+                with self.assertRaises(RuntimeError):
+                    self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                                        user=user, token=token),
+                                    [{"id": 1, "name": "Lola", "age": 23, "gender": "NB"}])
+                with self.assertRaises(RuntimeError):
+                    self.main.replace_data("customers", {"name": "Lola"},
+                                           {"gender": "Male", "age": 54},
+                                           user=user, token=token)
+                with self.assertRaises(RuntimeError):
+                    self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                                        user=user, token=token),
+                                    [{"id": 1, "name": "Lola", "age": 54, "gender": "Male"}])
+                with self.assertRaises(RuntimeError):
+                    self.main.delete_data("customers", {"name": "Lola"},
+                                           user=user, token=token)
+                with self.assertRaises(RuntimeError):
+                    self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                                        user=user, token=token),
+                                    [])
+                break
+            else:
+                continue
