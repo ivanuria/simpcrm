@@ -1,9 +1,36 @@
-# Fields definitions
+#!/usr/bin/env python
+
+__author__ = "Iván Uría"
+
+"""This module gives an interface "Field" and "Fields" to save memory usage
+
+They are used internally by "Entity".
+"""
+
 from collections import defaultdict
+from databases import DBInterface
+from typing import NoReturn
 
 class Field:
-    #persistent = defaultdict(lambda: defaultdict(dict)) #Moved to Fields
-    def __new__(cls, database, table, name, definition, description=""):
+    """Field individual class
+    Arguments:
+        database: DBInterface object
+        table: name of the table
+        name: name of the field
+        definition: type of the field
+        description: description of the field
+    Attributes:
+        database: DBInterface object
+        name: name of the field. Setter defined
+        definition: definition of the field
+        table: name of the table
+    Methods:
+        rename: renames the field.
+    """
+    def __new__(cls, database:DBInterface, table:str, name:str, definition:type, description:str="") -> NoReturn:
+        """Defining the new function to search for persistency inside Fields.
+        It tries not to duplicate information in memory.
+        """
         if not table in Fields.persistent[database]:
             Fields(database, table, name)
         if (database in Fields.persistent and
@@ -18,6 +45,8 @@ class Field:
             return super().__new__(cls)
 
     def __init__(self, database, table, name, definition, description=""):
+        """
+        """
         self._name = name
         self._database = database
         self._definition = definition
