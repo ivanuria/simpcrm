@@ -30,6 +30,12 @@ class Field:
     def __new__(cls, database:DBInterface, table:str, name:str, definition:type, description:str="") -> NoReturn:
         """Defining the new function to search for persistency inside Fields.
         It tries not to duplicate information in memory.
+        Arguments:
+            database: DBInterface object
+            table: name of the table
+            name: name of the field
+            definition: type of the field
+            description: description of the field
         """
         if not table in Fields.persistent[database]:
             Fields(database, table, name)
@@ -44,8 +50,14 @@ class Field:
         else:
             return super().__new__(cls)
 
-    def __init__(self, database, table, name, definition, description=""):
-        """
+    def __init__(self, database:DBInterface, table:str, name:str, definition:type, description:str="") -> NoReturn:
+        """Instantiates Field
+        Arguments:
+            database: DBInterface object
+            table: name of the table
+            name: name of the field
+            definition: type of the field
+            description: description of the field
         """
         self._name = name
         self._database = database
