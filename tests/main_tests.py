@@ -120,7 +120,7 @@ class v1_Main(unittest.TestCase):
         permitted = self.main.get_permited_permissions_changes(self.user, self.token, permissions)
         self.assertEqual(permissions, permitted)
 
-    def test_09_new_entity(self):
+    def test_09_new_entity_add_get_replace_delete(self):
         self.main.new_entity("customers",
                              "Customers",
                              {"name": str,
@@ -143,3 +143,17 @@ class v1_Main(unittest.TestCase):
                              "age": 5,
                              "gender": "NS/NC"}],
                            user=self.user, token=self.token)
+        self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                            user=self.user, token=self.token),
+                        [{"id": 1, "name": "Lola", "age": 23, "gender": "NB"}])
+        self.main.replace_data("customers", {"name": "Lola"},
+                               {"gender": "Male", "age": 54},
+                               user=self.user, token=self.token)
+        self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                            user=self.user, token=self.token),
+                        [{"id": 1, "name": "Lola", "age": 54, "gender": "Male"}])
+        self.main.delete_data("customers", {"name": "Lola"},
+                               user=self.user, token=self.token)
+        self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
+                                            user=self.user, token=self.token),
+                        [])

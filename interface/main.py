@@ -397,4 +397,4 @@ class Main:
     @only_permitted(table=0, operation="w")
     def delete_data(self, entity_id, filter, *, user, token):
         if entity_id in self.entities:
-            self.entities[entity_id].delete(filter, data)
+            self.entities[entity_id].delete(filter)
