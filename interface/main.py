@@ -129,14 +129,16 @@ class Main:
             time.sleep(1)
         self._thread.join()
 
-    def install(self, user, name, password_hash):
+    def install(self, user, name, password):
         if self.installed is False:
             install_persistency(self.database)
             for table in DEFINITIONS:
                 Entity(self.database, table, table, DEFINITIONS[table], "", loop=self._loop)
                 self.entities[table.split(":")[-1]].install()
+            salt, password_hash = hasher(password)
             self.entities["__users"].insert({"id": user,
                                              "name": name,
+                                             "salt": salt,
                                              "pwdhash": password_hash,
                                              "roles": "admin"})
             self.entities["__users"].insert(DEFAULT_USERS)
@@ -166,13 +168,14 @@ class Main:
         else:
             return True
 
-    def login(self, user, pwdhash):
+    def login(self, user, pwd):
         try:
             user = self.entities["__users"][user][0]
         except IndexError:
             raise RuntimeError("User not found")
+        _, pwdhash = hasher(pwd, user["salt"])
         if user["pwdhash"] == pwdhash:
-            user["token"] = hasher("".join(map(str,(user["id"], pwdhash))))
+            salt, user["token"] = hasher("".join(map(str,(user["id"], pwdhash))))
             user["expires_at"] = datetime.now() + timedelta(seconds=EXPIRE_TOKEN)
         return user["token"]
 

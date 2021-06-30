@@ -8,15 +8,15 @@ import unittest
 from entities import Entity
 from interface import Main, hasher
 from interface.main import only_permitted
-from interface.defaults import DEFAULT_USERS
+from interface.defaults import DEFAULT_USERS, DEFAULT_PWD
 
 class v1_Main(unittest.TestCase):
     def setUp(self):
         try:
             self.main = Main(configdbfile=os.path.join("tests", "test_main_config.ini"))
-            self.user, self.name, self.hash = "admin", "Iván", hasher("testingPassword123")
-            self.main.install(self.user, self.name, self.hash)
-            self.token = self.main.login(self.user, self.hash) #TODO: hash password must be dynamic
+            self.user, self.name, self.pwd = "admin", "Iván", "testingPassword123"
+            self.main.install(self.user, self.name, self.pwd)
+            self.token = self.main.login(self.user, self.pwd) #TODO: hash password must be dynamic
         except:
             self.tearDown()
             raise
@@ -81,7 +81,7 @@ class v1_Main(unittest.TestCase):
             else:
                 for i in DEFAULT_USERS:
                     if i["id"] == user:
-                        token = self.main.login(user, i["pwdhash"])
+                        token = self.main.login(user, DEFAULT_PWD)
             value = test_dict[user]
             for table in ["__users", "__roles", "__permissions", "__entities"]:
                 for perm in ["r", "w"]:
@@ -184,8 +184,7 @@ class v1_Main(unittest.TestCase):
         for u in DEFAULT_USERS:
             user = u["id"]
             if user == ["opm002", "op001", "op002"]:
-                hash = u["pwdhash"]
-                token = self.main.login(user, hash)
+                token = self.main.login(user, DEFAULT_PWD)
                 self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
                                                     user=user, token=token),
                                 [{"id": 1, "name": "Lola", "age": 23, "gender": "NB"}])
@@ -230,8 +229,7 @@ class v1_Main(unittest.TestCase):
         for u in DEFAULT_USERS:
             user = u["id"]
             if user in ["itm002", "it001", "it002"]:
-                hash = u["pwdhash"]
-                token = self.main.login(user, hash)
+                token = self.main.login(user, DEFAULT_PWD)
                 with self.assertRaises(RuntimeError):
                     self.assertEqual(self.main.get_data("customers", {"name": "Lola"},
                                                         user=user, token=token),
