@@ -67,26 +67,42 @@ class Field:
         Fields.persistent[database][table][name] = self
 
     @property
-    def database(self):
+    def database(self) -> DBInterface:
+        """Returns DBInterface being used
+        """
         return self._database
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """Returns name of the field
+        """
         return self._name
 
     @name.setter
-    def name(self, value):
+    def name(self, value:str) -> NoReturn:
+        """Renames name of the field
+        Arguments:
+            value: new name for the field
+        """
         self.rename(value)
 
     @property
-    def definition(self):
+    def definition(self) -> str:
+        """Returns the definition of the field
+        """
         return self._definition
 
     @property
-    def table(self):
+    def table(self) -> str:
+        """Returns the name of the table of the field
+        """
         return self._table
 
-    def rename(self, new_name):
+    def rename(self, new_name:str) -> NoReturn:
+        """Renames name of the field
+        Arguments:
+            value: new name for the field
+        """
         if new_name not in Fields.persistent[self.database][self.table]:
             dict.__setitem__(Fields.persistent[self.database][self.table],
                                new_name, self)
