@@ -112,6 +112,29 @@ class Field:
             self._name = new_name
 
 class Fields(dict):
+    """dict subclass with a persistent check to save memory.
+    It's used internally by Entity.
+    Attributes:
+        persistent: Class attribute. Dictionary of dictionaries with the form:
+            {DBInterface: {table_name: Fields}}
+        database: DBInterface to play with the database
+        table: name of the table or tree in the database
+        fields: a dict of the fields contained. Literally a dict(self)
+            {field_name: Field}
+        installed: whether or not the database has the required tables.
+    Methods:
+        All a dict has and...
+        set_installed: sets installed to True
+    Arguments:
+        database: DBInterface to play with
+        table: table of the name parenting the Fields
+        fields: fields to add. It can be a list of Field:
+            [Field, Field, Field...]
+            A list of dicts with required data to instantiate a Field:
+            [{"name": "field1", "definition": type, "description": "This is optional"}]
+            A dict of names of fields with their types:
+            {"field1": str, "field2": int, "field3": datetime}
+    """
     persistent = defaultdict(dict)
     def __new__(cls, database, table, fields):
         if database in cls.persistent and table in cls.persistent[database]:
