@@ -136,13 +136,35 @@ class Fields(dict):
             {"field1": str, "field2": int, "field3": datetime}
     """
     persistent = defaultdict(dict)
-    def __new__(cls, database, table, fields):
+    def __new__(cls, database:DBInterface, table:str, fields:(list, tuple, dict)) -> NoReturn:
+        """Again __new__ is overriden to check persistency
+        Arguments:
+            database: DBInterface to play with
+            table: table of the name parenting the Fields
+            fields: fields to add. It can be a list of Field:
+                [Field, Field, Field...]
+                A list of dicts with required data to instantiate a Field:
+                [{"name": "field1", "definition": type, "description": "This is optional"}]
+                A dict of names of fields with their types:
+                {"field1": str, "field2": int, "field3": datetime}
+        """
         if database in cls.persistent and table in cls.persistent[database]:
             return cls.persistent[database][table]
         else:
             return super().__new__(cls)
 
-    def __init__(self, database, table, fields):
+    def __init__(self, database:DBInterface, table:str, fields:(list, tuple, dict)) -> NoReturn:
+        """Initializes new Fields instance
+        Arguments:
+            database: DBInterface to play with
+            table: table of the name parenting the Fields
+            fields: fields to add. It can be a list of Field:
+                [Field, Field, Field...]
+                A list of dicts with required data to instantiate a Field:
+                [{"name": "field1", "definition": type, "description": "This is optional"}]
+                A dict of names of fields with their types:
+                {"field1": str, "field2": int, "field3": datetime}
+        """
         super().__init__(self)
         self.persistent[database][table] = self
         self._table = table
@@ -158,23 +180,42 @@ class Fields(dict):
                 list(map(lambda x: Field(database, table, x["name"], x["definition"], description), fields))
 
     @property
-    def database(self):
+    def database(self) -> DBInterface:
+        """Returns DBInterface instance to play with database
+        """
         return self._database
 
     @property
-    def table(self):
+    def table(self) -> str:
+        """Returns the name of the table in the database
+        """
         return self._table
 
     @property
-    def fields(self):
+    def fields(self) -> dict:
+        """Returns a dict of the fields contained. Literally a dict(self)
+            {field_name: Field}
+        """
         return dict(self)
 
     @property
-    def installed(self):
+    def installed(self) -> bool:
+        """Returns whether or not the database has the required tables
+        """
         return self._installed
 
     #Overrides
-    def __setitem__(self, key, value):
+    def __setitem__(self, key:str, value:(str, dict, type, Field)) -> NoReturn:
+        """__setitem__ is overriden to instantiate Field with given data.
+        Arguments:
+            key: name of the field to set or modify
+            value: it can have three kind of values
+                str: if the field already exists, it calls rename of the Field with this value
+                type: instantiates new Field with given type
+                dict: to instantiate Field. Of the kind
+                    {"name": "field1", "definition": type, "description": "This is optional"}
+                Field: just sets it
+        """
         if isinstance(value, Field):
             if self.installed is True:
                 if key in self and value.definition != self[key].definition:
@@ -201,14 +242,22 @@ class Fields(dict):
             else:
                 raise Exception("Operation not permitted")
 
-    def __delitem__(self, key):
+    def __delitem__(self, key:str) -> NoReturn:
+        """Overriden to delete it from database too
+        Arguments:
+            key: name of the Field
+        """
         if key in self and self.installed is True:
-            self.database.alteer_table_drop_column(key, table=self.table)
+            self.database.alter_table_drop_column(key, table=self.table)
         super().__delitem__(key)
 
-    def values(self): #Let's override this
+    def values(self) -> list:
+        """Returns a list of types that can be paired with .keys()
+        """
         return [item.definition for item in super().values()]
 
     ##methods
-    def set_installed(self):
+    def set_installed(self) -> NoReturn:
+        """Sets installed to True
+        """
         self._installed = True
