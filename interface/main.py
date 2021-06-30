@@ -144,11 +144,6 @@ class Main:
             self.entities["__users"].insert(DEFAULT_USERS)
             self.entities["__roles"].insert(DEFAULT_ROLES)
             self.entities["__permissions"].insert(DEFAULT_PERMISSIONS)
-            #permissions = []
-            #for role, perm in (("admin", True), ("user", False)):
-            #    for ent in ["__users", "__permissions", "__simpcrm_main"]:
-            #        for op in ["r", "w", "d"]: #r=read, w=write, d=delete
-            #            permissions.append({"__roles_id": role, "entity": ent, "operation": op, "permitted": perm})
             self.entities["__simpcrm_main"].insert({"installed": datetime.now(),
                                                     "version": VERSION,
                                                     "name": "",
