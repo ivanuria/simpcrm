@@ -40,11 +40,16 @@ from collections import defaultdict
 from .fields import Field, Fields
 from datetime import datetime, timedelta
 from threading import RLock
+from typing import NoReturn
 
 TIMEOUT = 10
 LIFETIME = 600 # Fot future implementation
 
-def set_timeout(timeout):
+def set_timeout(timeout:int) -> NoReturn:
+    """Sets time to check changes on database
+    Arguments:
+        timeout: new value. 10 by default
+    """
     TIMEOUT = timeout
 
 class Item(dict):
