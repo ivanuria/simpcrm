@@ -1,4 +1,38 @@
-# Entities files
+#!/usr/bin/env python
+
+__author__ = "Iván Uría"
+
+"""This module gives an interface to play with entities easily without SQL
+Example of new Entity:
+
+    database = SQLite(database="data.db")
+    install_persistency()
+
+    loop = asyncio.new_event_loop() # Preparing loop
+    t = threading.Thread(target=loop.run_forever) #Preparing a thread for the loop
+
+    customers = Entity(database, "customers", "Customers",
+                       {"NID": [str, PRIMARY], "name": str, "birthday": datetime},
+                       "Keep your customres satisfied", loop=Loop)
+    customers.install()
+    customers.insert([{"NID": "12345678H", "name": "Pepi",
+                       "birthday": datetime.datetime.fromisoformat('1982-11-04')},
+                      {"NID": "11111111K", "name": "Manuel",
+                                         "birthday": datetime.datetime.fromisoformat('1969-04-13')}])
+    pepi = customers.get({"NID": "12345678H"})[0]
+    manuel = customers["11111111K"][0]
+    customers.replace({"name": "Pepi"]})
+    pepi2 = customers["NID": "11111111K"][0]
+    pepi == pepi2 #This is True
+
+Functions:
+    set_timeout: sets timeout for the asyncio loop to check if data has changed.
+        10 by default.
+
+Classes:
+    Item: dict to be given by data
+    Entity: An interface to access data in database more friendly
+"""
 
 from databases.databases import DBInterface, DBEnums
 from databases.sqlite import SqliteInterface
@@ -252,7 +286,8 @@ class Entity:
         self.database.delete(filter=filter, table=self.table)
 
     def get(self, filter={}):
-        return self.database.select(filter=filter, table=self.table)
+        data = self.database.select(filter=filter, table=self.table)
+        return [Item(self, item, loop=self._loop) for item in data]
 
     def insert(self, data):
         self.database.insert(data, table=self.table)
