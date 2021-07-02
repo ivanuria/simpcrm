@@ -184,23 +184,32 @@ class Item(dict):
         return lambda x, key=key: self.__setitem__(key, x)
 
     def set_handler(self, field:str, handler:Callable) -> NoReturn:
-        """Sets handler to be called in case field changes.
+        """Sets handler to be called in case field changes. It's assigned in a list.
         Attributes:
             field: name of the field
             handler: callable that gets just the new value
         """
         self._server_changed_handlers[field].append(handler)
 
-    def remove_handler(self, field, handler):
+    def remove_handler(self, field:str, handler:callable) -> NoReturn:
+        """Removes handler to be called in case field changes.
+        Attributes:
+            field: name of the field
+            handler: callable to be deleted
+        """
         if handler in self._server_changed_handlers[field]:
             del(self._server_changed_handlers[field][self._server_changed_handlers[field].index(handler)])
 
-    def close(self):
+    def close(self) -> NoReturn:
+        """Closes connections with handler and loop. It's called from __del__
+        """
         if self._handler is not None:
             self._handler.cancel()
         self._loop = None
 
-    def update_data(self, data):
+    def update_data(self, data:dict) -> NoReturn:
+        """Updates all data given in Item
+        """
         #TODO: Any verification if needed
         with self.lock:
             self.update(data)
