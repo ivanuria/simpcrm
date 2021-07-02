@@ -246,6 +246,28 @@ class Entity:
         parent_field: name of the field associated to parent (must be PRIMARY)
         table: name of the table
         primary_key: name of the field wich is primary key
+    Methods:
+        close: closes connections. Called from __del__
+        delete: deletes data from database
+        get: returns a list of Item
+        insert: insert data in database
+        install: installs in database
+        uninstall: removes table from database and self from memory
+        replace: changes data from database
+        set_child: appends a child to children
+        set_database: sets new database
+        add_field: adds a new field and changes database if needed
+        change_field: changes a field configuration
+        change_fields: changes fields configurations
+    Example:
+        sqlite = databases.SQlite("data.db")
+        customers = Entity(sqlite, "customers", "Customers", {"name": str, "age": int},
+                           "My customers satisfied")
+        customers.install()
+        customers.insert([{"name": "Pepi", "age": 32}, {"name": "George", "age":22}])
+        pepi = customers[1]
+        george = customers[2]
+        customers.update({"name": "George"}, {"age": 24})
     """
     persistent = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
@@ -345,7 +367,7 @@ class Entity:
     #Properties
     @property
     def children(self):
-        return self._children
+        return self._children.copy()
 
     @property
     def database(self):
