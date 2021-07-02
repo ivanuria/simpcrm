@@ -209,6 +209,9 @@ class Item(dict):
 
     def update_data(self, data:dict) -> NoReturn:
         """Updates all data given in Item
+        Arguments:
+            data: dictionary of data of kind:
+                {"field1": "value1", "field2": "value2"...}
         """
         #TODO: Any verification if needed
         with self.lock:
@@ -221,6 +224,29 @@ class Item(dict):
                                 handler(data[key])
 
 class Entity:
+    """Entity represents a table or tree of data. It gives an interface to play
+    with the data.
+    Use it directly only to create new Entities. For existing entities in database
+    use get_entity or get_entities instead.
+    Arguments:
+        database: DBInterface to play with
+        table: name of the table
+        name: name of the entity
+        fields: fields to use use. See Fields doc.
+        description: desciption of the entity
+        parent: name of the parent table of this entity
+        parent_field: name of the field representing the parent
+        loop: event loop to check changes
+    Atributes:
+        children: list of entities depending on this entity
+        database: DBInterface associated
+        fields: Fields object of associated fields
+        name: name of the entity
+        parent: name of the parent
+        parent_field: name of the field associated to parent (must be PRIMARY)
+        table: name of the table
+        primary_key: name of the field wich is primary key
+    """
     persistent = defaultdict(dict)
     # A dictionary with an entity by database. Why? Suddenly my intuition sais I must do this
 
