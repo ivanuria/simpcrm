@@ -138,9 +138,10 @@ class Item(dict):
             value: value to set
         """
         if key in self.entity.fields:
-            super().__setitem__(key, value)
-            self.entity.replace({self.primary_key: self[self.primary_key]}, {key: value})
-            self._last_event = datetime.now()
+            with self.lock:
+                super().__setitem__(key, value)
+                self.entity.replace({self.primary_key: self[self.primary_key]}, {key: value})
+                self._last_event = datetime.now()
         else:
             raise Exception("Field not in entity")
 
