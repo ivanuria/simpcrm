@@ -54,12 +54,15 @@ def only_permitted(table=None, operation="r"):
     return only_permitted_decorator
 
 class Main:
-    def __init__(self, configdbfile="config\\config.ini"):
+    def __init__(self, *, configdbfile=os.path.join("config", "config.ini"), config=None):
         """
         Main implementation to separate it from GUI
         """
         self._configdbfile = configdbfile
-        self._config = self.read_configuration(configdbfile)
+        if config is None:
+            self._config = self.read_configuration(configdbfile)
+        else:
+            self._config = config
         self._database = new_db_interface(**self._config["Main DB"])
         self._loop = asyncio.new_event_loop()
         self._thread = threading.Thread(target=self._loop.run_forever)
