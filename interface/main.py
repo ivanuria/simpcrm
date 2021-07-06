@@ -39,7 +39,7 @@ def only_permitted(table=None, operation="r"):
                     if not user:
                         raise RuntimeError("User not found")
                     else:
-                        user = user[0]
+                        user = user
                     roles = user["roles"].split(" ")
                     authorising = self.entities["__permissions"].get({"entity": table,
                                                                       "operation": operation,
@@ -100,7 +100,7 @@ class Main:
         if "Main DB" in data:
             config["Main DB"] = data["Main DB"]
         with open(path_to_save, "w") as cfgfile:
-            config.write(configfile)
+            config.write(cfgfile)
 
     @property
     def database(self):
@@ -155,7 +155,7 @@ class Main:
 
     def logged(self, user, token):
         try:
-            user = self.entities["__users"][user][0]
+            user = self.entities["__users"][user]
         except IndexError:
             raise RuntimeError("User not found")
         if user["token"] != token or user["expires_at"] < datetime.now():
@@ -165,7 +165,7 @@ class Main:
 
     def login(self, user, pwd):
         try:
-            user = self.entities["__users"][user][0]
+            user = self.entities["__users"][user]
         except IndexError:
             raise RuntimeError("User not found")
         _, pwdhash = hasher(pwd, user["salt"])
@@ -199,7 +199,7 @@ class Main:
         if isinstance(roles, str):
             roles = roles.split(" ")
         l_roles = list(roles)
-        accepted_roles = self.get_role_children(self.entities["__users"][user][0]["roles"])
+        accepted_roles = self.get_role_children(self.entities["__users"][user]["roles"])
         final_roles = []
         for role in l_roles:
             if role in accepted_roles:
@@ -231,9 +231,10 @@ class Main:
 
     @only_permitted(table="__users", operation="w")
     def delete_user(self, user_id, *, user, token):
-        roles = self.check_permitted_roles(user, roles)
-        if self.entities["__users"][new_user]:
-            user_roles = self.entities["__users"][new_user].split(" ")
+        if self.entities["__users"][user_id]:
+            roles = self.entities["__users"][user]["roles"].split(" ")
+            roles = self.check_permitted_roles(user, roles)
+            user_roles = self.entities["__users"][user_id]["roles"].split(" ")
             if any([role in user_roles for role in roles]):
                 self.entities["__users"].delete({self.entities["__users"].primary_key: user_id})
             else:
@@ -255,7 +256,7 @@ class Main:
         if self.logged(user, token) is False:
             raise RuntimeError("Unauthorised: may login again")
         else:
-            user = self.entities["__users"][user][0]
+            user = self.entities["__users"][user]
             roles = user["roles"].split(" ")
             authorising = self.entities["__permissions"].get({"__roles_id": ["IN", roles]})
         for perm in authorising:
@@ -303,9 +304,9 @@ class Main:
             #By now any attempt of changing a non existing role will create
         else:
             if description is None:
-                description = this_role[0]["description"]
+                description = this_role["description"]
             if parent is None:
-                parent = this_role[0]["parent"]
+                parent = this_role["parent"]
             self.entities["__roles"][role_id] = {"description": description,
                                                  "parent": parent}
             for perm in permitted_changes:
@@ -325,7 +326,7 @@ class Main:
     def delete_role(self, role_id):
         if role_id == "admin":
             raise RuntimeError("Operation not permitted") # TODO: Make another exception
-        permitted_changes = self.get_permmited_permissions_changes(user, permissions)
+        permitted_changes = self.check_permitted_roles(user, [role_id])
         if role_id not in permitted_changes:
             raise RuntimeError("Operation not permitted")
         else:
@@ -359,8 +360,8 @@ class Main:
                 assert all([key in field for key in ["name", "definition", "description", "table_name"]])
                 if any([key in field for key in ["new_definition", "new_name", "new_description"]]):
                     to_change.append(field)
-                if item["name"] not in self.entities[entity_id].fields:
-                    to_add.append(item)
+                if field["name"] not in self.entities[entity_id].fields:
+                    to_add.append(field)
             if to_change:
                 self.entities[entity_id].change_fields(to_change) # Safaty first even if it makes this slower
             if to_add:
