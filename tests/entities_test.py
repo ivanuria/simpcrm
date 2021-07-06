@@ -136,7 +136,7 @@ class v1_Entity_and_defaults(unittest.TestCase):
         self.assertEqual(self.entity.primary_key, "id")
 
     def test_get_getitem(self):
-        self.assertEqual(self.entity[1], [{"id": 1, "foo": "Hola", "bar": 10}])
+        self.assertEqual(self.entity[1], {"id": 1, "foo": "Hola", "bar": 10})
         self.assertEqual(self.entity[1:10], [{"id": 1, "foo": "Hola", "bar": 10},
                                              {"id": 2, "foo": "Adios", "bar": 12}])
         self.assertEqual(self.entity["foo": "Hola"], [{"id": 1, "foo": "Hola", "bar": 10}])
