@@ -54,7 +54,7 @@ def only_permitted(table=None, operation="r"):
     return only_permitted_decorator
 
 class Main:
-    def __init__(self, configdbfile="config\\databases.ini"):
+    def __init__(self, configdbfile="config\\config.ini"):
         """
         Main implementation to separate it from GUI
         """
