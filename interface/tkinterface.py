@@ -1,16 +1,36 @@
+import asyncio
+import gettext
 import tkinter as tk
 from .main import Main
 
-class App(tk.Frame):
-    def __init__(self, main_app, master=None):
+gettext.install("simpcrm")
+
+class InstallFrame(tk.Frame):
+    def __init__(self, master, main_app):
         super().__init__(master)
-        self.master = master
         self.main_app = main_app
-        self.pack()
+        self.master = master
+
+class App():
+    def __init__(self, main_app, config):
+        self.config = config
+        self.main_app = main_app
+        self.loop = asyncio.new_event_loop()
+
+    def install(self):
+        root = tk.Tk()
+        root.title(_("Installation of SimCRM"))
+        install_frame = InstallFrame(root, self.main_app)
+        root.mainloop()
+
+    def mainloop(self):
+        if not self.main_app.installed:
+            self.install()
+
+        
 
 def main(config):
-    print("Iniatiliing TKInter")
+    print("Iniatilizing TKInter")
     main_app = Main(config=dict(config))
-    root = tk.Tk()
-    app = App(main_app, master=root)
+    app = App(main_app, config)
     app.mainloop()
