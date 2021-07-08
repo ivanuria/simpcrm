@@ -21,7 +21,7 @@ import sqlite3
 import threading
 from databases.databases import Data, DBInterface, DBEnums
 from collections import defaultdict, OrderedDict
-from typing import NoReturn
+from typing import NoReturn, Union, Tuple
 
 #Converters
 sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
@@ -131,7 +131,7 @@ class SqliteInterface(DBInterface):
 
     # Static Methods
     @classmethod
-    def _create_filter_query(cls, filter:dict) -> (str, dict):
+    def _create_filter_query(cls, filter:dict) -> Tuple[str, dict]:
         """Creates sql filter query with given filter to use internally by
         _create_sql_query
         Arguments:
@@ -183,7 +183,7 @@ class SqliteInterface(DBInterface):
         return string, safe
 
     @classmethod
-    def _create_fields_pairing(cls, fields:list, data:list, joiner:str=" ") -> (str, dict):
+    def _create_fields_pairing(cls, fields:list, data:list, joiner:str=" ") -> Tuple[str, dict]:
         """Creates sql fields pairing to use internally by _create_sql_query
         Arguments:
             fields: list of fields to pair with data
@@ -229,7 +229,7 @@ class SqliteInterface(DBInterface):
         return pairing, sql_safe_passing
 
     @classmethod
-    def _create_fields_value_for_insert(cls, fields:list, values:list) -> (str, dict):
+    def _create_fields_value_for_insert(cls, fields:list, values:list) -> Tuple[str, dict]:
         """Creates sql fields pairing to use internally by _create_sql_query to
         create an insert clause. Separated from _create_fields_value for sanity
         Arguments:
@@ -257,8 +257,8 @@ class SqliteInterface(DBInterface):
         return fields_str, values_str, safe
 
     def _create_sql_query(self, *, table:str=None, method:DBEnums=DBEnums.SELECT,
-                          fields:[list, tuple]=[], data:[list, tuple]=[],
-                          exists:bool=True, filter:dict=None) -> (str, dict):
+                          fields:Union[list, tuple]=[], data:Union[list, tuple]=[],
+                          exists:bool=True, filter:dict=None) -> Tuple[str, dict]:
         """Creates sql query with given kwargs to be used by sqlite3
             You can use self.sql_dict to have a default dictionary for key args.
         Key Arguments:

@@ -18,7 +18,7 @@ Example:
 """
 
 from enum import Enum, auto
-from typing import NoReturn
+from typing import NoReturn, Union
 
 class DBEnums(Enum):
     """Enumerator of Constants used by database objects.
@@ -233,7 +233,7 @@ class DBInterface:
         raise NotImplementedError
 
     def _create_sql_query(self, *, table:str=None, method:DBEnums=DBEnums.SELECT,
-                          fields:[list, tuple]=[], data:[list, tuple]=[],
+                          fields:Union[list, tuple]=[], data:Union[list, tuple]=[],
                           exists:bool=True, filter:dict=None) -> str:
         """Creates sql query with given args
             You can use self.sql_dict to have a default dictionary
@@ -303,7 +303,7 @@ class DBInterface:
             fields = []
         return filter, table, fields, database
 
-    def insert(self, data:[dict, list, tuple], table:str=None, database:str=None) -> tuple:
+    def insert(self, data:Union[dict, list, tuple], table:str=None, database:str=None) -> tuple:
         """Inserts data in database and table
             To be overriden in child class, to use defaults given by this class use:
                 table, fields, values, database = super().insert(data, table, database)
