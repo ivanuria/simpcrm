@@ -2,14 +2,10 @@ import asyncio
 import gettext
 import tkinter as tk
 from .main import Main
+from .tkshare.frames import Frames
 
 gettext.install("simpcrm")
-
-class InstallFrame(tk.Frame):
-    def __init__(self, master, main_app):
-        super().__init__(master)
-        self.main_app = main_app
-        self.master = master
+_ = gettext.gettext # Explicit
 
 class App():
     def __init__(self, main_app, config):
@@ -20,7 +16,7 @@ class App():
     def install(self):
         root = tk.Tk()
         root.title(_("Installation of SimCRM"))
-        install_frame = InstallFrame(root, self.main_app)
+        install_frame = Frames.Install(root, self.main_app)
         root.mainloop()
 
     def mainloop(self):
