@@ -9,7 +9,7 @@ They are used internally by "Entity".
 
 from collections import defaultdict
 from databases import DBInterface
-from typing import NoReturn
+from typing import NoReturn, Union
 
 class Field:
     """Field individual class
@@ -136,7 +136,7 @@ class Fields(dict):
             {"field1": str, "field2": int, "field3": datetime}
     """
     persistent = defaultdict(dict)
-    def __new__(cls, database:DBInterface, table:str, fields:(list, tuple, dict)) -> NoReturn:
+    def __new__(cls, database:DBInterface, table:str, fields:Union[list, tuple, dict]) -> NoReturn:
         """Again __new__ is overriden to check persistency
         Arguments:
             database: DBInterface to play with
@@ -153,7 +153,7 @@ class Fields(dict):
         else:
             return super().__new__(cls)
 
-    def __init__(self, database:DBInterface, table:str, fields:(list, tuple, dict)) -> NoReturn:
+    def __init__(self, database:DBInterface, table:str, fields:Union[list, tuple, dict]) -> NoReturn:
         """Initializes new Fields instance
         Arguments:
             database: DBInterface to play with
@@ -205,7 +205,7 @@ class Fields(dict):
         return self._installed
 
     #Overrides
-    def __setitem__(self, key:str, value:(str, dict, type, Field)) -> NoReturn:
+    def __setitem__(self, key:str, value:Union[str, dict, type, Field]) -> NoReturn:
         """__setitem__ is overriden to instantiate Field with given data.
         Arguments:
             key: name of the field to set or modify
