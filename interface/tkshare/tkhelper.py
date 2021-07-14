@@ -11,7 +11,8 @@ class ItemWrapper(dict):
     """For wrapping an Item and returning tkinter types
     It overrides dict making it mover easy to use.
     Arguments:
-        item: Item to wrapc
+        item: Item to wrap
+        config: parsed configuration
     """
     def __init__(self, item:Item, config:dict) -> NoReturn:
         super().__init__()
@@ -21,12 +22,13 @@ class ItemWrapper(dict):
         primary_index = self._keys.index(self.item.primary_key)
         #Primaryindex is always a list [type, DBEnum.PRIMARY]
         self._types[primary_index] = self._types[primary_index][0]
+        dt_format = " ".join(config["Formats"]["date"], config["Formats"]["time"])
         types = {
         # It will be a tuple with three values: [tkinter, getter, setter]
         # Both getter and setter would be lambdas for conversion if neccesary
             int: [tk.IntVar, lambda x: x, lambda x: x],
             str: [tk.StringVar, lambda x: x, lambda x: x],
-            datetime: [tk.StringVar, lambda x: x.strftime("dd-mm-YYYY HH:MM:SS"), lambda x: datetime.strptime(x, "dd-mm-YYYY HH:MM:SS")], #TODO: Make this configurable
+            datetime: [tk.StringVar, lambda x: x.strftime(dt_format), lambda x: datetime.strptime(x, dt_format)],
             float: [tk.DoubleVar, lambda x: x, lambda x: x],
             bool: [tk.BooleanVar, lambda x: x, lambda x: x]
         }
